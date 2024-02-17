@@ -1,4 +1,8 @@
 {
     "url": "http://localhost:8080/",
-    "method": "GET"
+    "method": "POST",
+    "Content-Type": "application/json",
+    "body": {
+        "data": "aa"
+    }
 }

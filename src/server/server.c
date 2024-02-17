@@ -12,6 +12,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+char* method;
+char* uri;
+
 void start_server() {
     print_title();
 
@@ -63,7 +66,6 @@ void start_server() {
         // Client info
         struct sockaddr_in client_address;
         socklen_t client_address_length = sizeof(client_address);
-        
         socket_t* client_fd = malloc(sizeof(socket_t));
 
         *client_fd = accept(server_fd, (struct sockaddr*) &client_address, &client_address_length);
@@ -83,13 +85,14 @@ void start_server() {
 }
 
 void* handle_client(void* client_socket_fd) {
+    request_handler_t req;
+
     // NOTE - Cast the void pointer into the correct type
     socket_t client_fd = *((socket_t*) client_socket_fd);
     char* buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
-
+   
     // Receive request data
     ssize_t bytes_received = recv(client_fd, buffer, BUFFER_SIZE, 0);
-
     if (bytes_received < 0) {
         fprintf(stderr, "Failed to read client buffer\n");
     }
@@ -98,20 +101,30 @@ void* handle_client(void* client_socket_fd) {
         fprintf(stderr, "Client disconnected unexpectedly\n");
     }
     
+    req.method=buffer;
+    printf("\nBEFORE BUFFER:\n%s\nEND BEFORE BUFFER\n", buffer);
+
+    // Set payload data from buffer
+    //req.payload = buffer;
+    //req.payload_size = strlen(buffer);
+    
+
     if (bytes_received > 0) {
         regex_t regex;
         regmatch_t matches[2];
 
-        regcomp(&regex, "^GET /([^ ]*) HTTP/1", REG_EXTENDED);
+        regcomp(&regex, "^(GET|POST|PUT|DELETE) /([^ ]*) HTTP/1", REG_EXTENDED);
 
         if (regexec(&regex, buffer, 2, matches, 0) == 0) {
             // get file name
             buffer[matches[1].rm_eo] = '\0';
             const char* url_encoded_filename = buffer + matches[1].rm_so;
 
+            method = buffer;
+            uri = "/";            
+
             // decode url
             char* filename = decode_url(url_encoded_filename);
-            printf(filename);
 
             // Get file extension
             char file_extension[32];
@@ -120,15 +133,10 @@ void* handle_client(void* client_socket_fd) {
             // Build http response
             char* response = (char*) malloc(BUFFER_SIZE * 2 * sizeof(char));
             size_t response_length;
+
             build_http_response(filename, file_extension, response, &response_length);
 
-            // FIXME - For some reason when compiled this function is considered a implicit declaration even tough it is not
-            #pragma GCC diagnostic push
-            #pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
-            request_handler_t req = { 0 };
-            req.method = "GET";
             route(req);
-            #pragma GCC diagnostic pop
 
             // Send HTTP response to client
             send(client_fd, response, response_length, 0);
@@ -142,8 +150,6 @@ void* handle_client(void* client_socket_fd) {
     }
 
     close(client_fd);
-
-    free(client_socket_fd);
     free(buffer);
 
     return NULL;

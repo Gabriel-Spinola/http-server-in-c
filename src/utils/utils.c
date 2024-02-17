@@ -59,3 +59,26 @@ const char* get_mime_type(const char* file_extension) {
 
     return "application/octet-stream";
 }
+
+char* get_http_method(char* request_buffer) {
+    printf("\nREQUEST BUFFER:\n\r%s\nEND OF REQUEST BUFFER\n", request_buffer);
+
+    // Check if the request starts with "GET "
+    if (strncmp(request_buffer, "GET ", 4) == 0) {
+        return "GET";
+    }
+    // Check if the request starts with "POST "
+    if (strncmp(request_buffer, "POST ", 5) == 0) {
+        return "POST";
+    }
+    // Check if the request starts with "PUT "
+    if (strncmp(request_buffer, "PUT ", 4) == 0) {
+        return "PUT";
+    }
+    // Check if the request starts with "DELETE "
+    if (strncmp(request_buffer, "DELETE ", 7) == 0) {
+        return "DELETE";
+    }
+
+    return "UNKNOWN";
+}

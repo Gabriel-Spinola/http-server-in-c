@@ -8,20 +8,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 int main() {
     start_server();
 
     return 0;
 }
 
-
-void route() {
-    /*printf("Starting router...");
-
+void route(request_handler_t request) {
+    printf("Starting router...");
+    
     ROUTE_START()
-        ROUTE_GET("/") {
-            printf("/");
+        ROUTE_POST("/") {
+            printf("\n\n===REQDATA====:\n");
+            printf("\nmethod: %s", request.method);
+            printf("\nuri: %s", request.uri);
+            printf("\npayload_size: %s", request.payload_size);
+            printf("\npayload: %s", request.payload);
+            printf("\n\n===REQDATA====:\n");
+
+
+            printf("\nFOUND ROUTE\n");
         }
-    ROUTE_END()*/
+    ROUTE_END()   
 }

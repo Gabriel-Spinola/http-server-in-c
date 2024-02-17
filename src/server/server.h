@@ -14,8 +14,17 @@
              *protype;
 
         char* payload;
-        int payload_size;
+        size_t payload_size;
     } request_handler_t;
+
+    typedef struct {
+        char* payload;
+    } response_t;
+
+    typedef struct {
+        socket_t client_fd;
+        request_handler_t request_handler;
+    } client_thread_t;
 
     void* handle_client(void* client_socket_fd);
     void start_server();
@@ -27,15 +36,18 @@
         size_t* response_length
     );
 
-    void route(request_handler_t req);
-/*
-    // some interesting macro for `route()`
+    extern client_thread_t client_thread_data;
+    extern void route(request_handler_t request);
+
+    extern char* method;
+    extern char* uri;
+
     #define ROUTE_START()       if (0) {
     #define ROUTE(METHOD, URI)  } else if (strcmp(URI, uri) == 0 && strcmp(METHOD, method) == 0) {
     #define ROUTE_GET(URI)      ROUTE("GET", URI) 
     #define ROUTE_POST(URI)     ROUTE("POST", URI) 
     #define ROUTE_END()         } else printf(\
-                                    "HTTP/1.1 500 Not Handled\r\n\r\n" \
-                                    "The server has no handler to the request.\r\n" \
-                                );*/
+                                "HTTP/1.1 500 Not Handled\r\n\r\n" \
+                                "The server has no handler to the request.\r\n" \
+                                );
 #endif /* SERVER_H */
