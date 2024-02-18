@@ -1,0 +1,14 @@
+# Use an official image of gcc as a parent image
+FROM gcc:latest
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+# Compile the C code
+RUN gcc -o app app.c -lsqlite3
+
+# Run the application when the container launches
+CMD ["./app"]
