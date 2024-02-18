@@ -19,26 +19,34 @@ int main() {
 // https://github.com/pedro-vicente/lib_netsockets/blob/master/examples/json_client.cc
 // https://stackoverflow.com/questions/32667109/send-and-receive-json-over-sockets-in-server-and-client-application-in-c
 void router(request_handler_t request, char* response) {
-    printf("Starting router...");
+    ROUTER_START()
+    
+    ROUTE_GET("/ping") {
+        char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
+        build_http_response(response,  header_buffer, STATUS_OK, "pong");
 
-    ROUTE_START()
-        ROUTE_POST("/") {
-            json_object* json_response = json_object_new_object();
-            json_object* string_data = json_object_new_string("data");
+        free(header_buffer);
+    }
 
-            json_object_object_add(json_response, "asdasdasd", string_data);
-            const char* stringfied_response = json_object_to_json_string(json_response);
+    ROUTE_POST("/") {
+        json_object* json_response = json_object_new_object();
+        json_object* string_data = json_object_new_string("data");
 
-            char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
-            build_http_response(response, header_buffer, STATUS_OK, stringfied_response);
+        json_object_object_add(json_response, "asdasdasd", string_data);
+        const char* stringfied_response = json_object_to_json_string(json_response);
 
-            free(header_buffer);
-        }
+        char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
+        build_http_response(response, header_buffer, STATUS_OK, stringfied_response);
 
-        ROUTE_GET("/cu") {
-            
-        }
-    ROUTE_END()   
+        free(header_buffer);
+    }
+
+    NOT_FOUND() {
+        char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
+        build_http_response(response,  header_buffer, STATUS_NOT_FOUND, "404 Not Found");
+
+        free(header_buffer);
+    }
 
     free(request.payload);
 }

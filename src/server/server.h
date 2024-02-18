@@ -36,7 +36,7 @@
     extern char* external_req_method;
     extern char* external_req_uri;
 
-    #define ROUTE_START()       if (0) {
+    #define ROUTER_START()       if (0) {
     #define ROUTE(METHOD, URI)  } else if (\
                                     strcmp(URI, external_req_uri) == 0 &&\
                                     strcmp(METHOD, external_req_method) == 0) {
@@ -45,8 +45,5 @@
     #define ROUTE_PUT(URI)      ROUTE("PUT", URI) 
     #define ROUTE_PATCH(URI)    ROUTE("PATCH", URI)
     #define ROUTE_DELETE(URI)   ROUTE("DELETE", URI) 
-    #define ROUTE_END()         } else printf(\
-                                "HTTP/1.1 500 Not Handled\r\n\r\n" \
-                                "The server has no handler to the request.\r\n" \
-                                );
+    #define NOT_FOUND()         } else 
 #endif /* SERVER_H */

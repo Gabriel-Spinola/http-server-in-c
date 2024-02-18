@@ -12,6 +12,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+static void extract_method_and_uri(const char* buffer, char** method, char** uri);
+
 char* external_req_method;
 char* external_req_uri;
 
@@ -114,42 +116,58 @@ void* handle_client(void* client_socket_fd) {
     // FIXME - Can't get the payload size, it's throwing a seg fault 
     // req.payload_size = (size_t) bytes_received;
 
-    if (bytes_received > 0) {
-        regex_t regex;
-        regmatch_t matches[2];
+    extract_method_and_uri(buffer, &external_req_method, &external_req_uri);
+    req.method = external_req_method;
+    req.uri = external_req_uri;
 
-        regcomp(&regex, "^(GET|POST|PUT|DELETE) /([^ ]*) HTTP/1", REG_EXTENDED);
+    // Build http response
+    char* response = (char*) malloc(BUFFER_SIZE * 2 * sizeof(char));
+    size_t response_length;
 
-        // NOTE - Mutate buffer into method
-        if (regexec(&regex, buffer, 2, matches, 0) == 0) {
-            // get file name
-            buffer[matches[1].rm_eo] = '\0';
+    router(req, response);
+    response_length = strlen(response);
 
-            external_req_method = buffer;
-            external_req_uri = "/";            
-
-            req.method = external_req_method;
-
-            // Build http response
-            char* response = (char*) malloc(BUFFER_SIZE * 2 * sizeof(char));
-            size_t response_length;
-
-            // build_http_response("filename", "json", response, &response_length);
-            router(req, response);
-            response_length = strlen(response);
-
-            // Send HTTP response to client
-            send(client_fd, response, response_length, 0);
-
-            fflush(stdout);
-            free(response);
-        }
-
-        regfree(&regex);
-    }
+    // Send HTTP response to client
+    send(client_fd, response, response_length, 0);
 
     close(client_fd);
+
+    fflush(stdout);
+    free(response);
     free(buffer);
 
     return NULL;
+}
+
+void extract_method_and_uri(const char* buffer, char** method, char** uri) {
+    // Find the first space character
+    const char* space_ptr = strchr(buffer, ' ');
+    if (space_ptr == NULL) {
+        fprintf(stderr, "Invalid HTTP request format: missing space\n");
+        return;
+    }
+
+    // Calculate the length of the method
+    size_t method_len = space_ptr - buffer;
+
+    // Allocate memory for the method and copy it
+    *method = (char*)malloc(method_len + 1);
+    strncpy(*method, buffer, method_len);
+    (*method)[method_len] = '\0'; // Null-terminate the method string
+
+    // Find the next space character after the method
+    const char* space_ptr2 = strchr(space_ptr + 1, ' ');
+    if (space_ptr2 == NULL) {
+        fprintf(stderr, "Invalid HTTP request format: missing second space\n");
+        free(*method);
+        return;
+    }
+
+    // Calculate the length of the URI
+    size_t uri_len = space_ptr2 - (space_ptr + 1);
+
+    // Allocate memory for the URI and copy it
+    *uri = (char*)malloc(uri_len + 1);
+    strncpy(*uri, space_ptr + 1, uri_len);
+    (*uri)[uri_len] = '\0'; // Null-terminate the URI string
 }
