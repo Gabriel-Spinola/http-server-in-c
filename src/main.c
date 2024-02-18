@@ -16,8 +16,7 @@ int main() {
     return EXIT_SUCCESS;
 }
 
-// https://github.com/pedro-vicente/lib_netsockets/blob/master/examples/json_client.cc
-// https://stackoverflow.com/questions/32667109/send-and-receive-json-over-sockets-in-server-and-client-application-in-c
+// TODO - read url parameters like: /[id]
 void router(request_handler_t request, char* response) {
     ROUTER_START()
     
