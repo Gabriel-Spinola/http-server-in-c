@@ -16,6 +16,7 @@ static void extract_request_body(const char* payload, size_t payload_size, char*
 
 char* external_req_method;
 char* external_req_uri;
+char parameters[MAX_REQUEST_PARAMETERS][MAX_REQ_PARAMETER_SIZE];
 
 void start_server() {
     print_title();
@@ -156,11 +157,44 @@ void* handle_client(void* client_socket_fd) {
     return NULL;
 }
 
+int check_route(const char* method, const char* uri) {
+    const char* param_start = strchr(uri, ':');
+    if (param_start == NULL) {
+        return strcmp(method, external_req_method) == 0 &&
+               strcmp(uri, external_req_uri) == 0;
+    }
+
+    // SPLIT FOR EVERY '/'
+    // RUN THROUGHT IT, IF ROUTE HAVE ':' ADD TO THE PARAMETERS LIST
+    // CHECK ORDER AND SEND DATA ACCORDINGLY
+    const char* delimiter = "/";
+    int num_tokens;
+    char** tokens = split(uri, delimiter, &num_tokens);
+
+    printf("Number of tokens: %zu\n", 3);
+    for (size_t i = 0; i < num_tokens; i++) {
+        const char* param = strchr(tokens[i], ':');
+        if (param == NULL) {
+            strcpy(parameters[i], param);
+            printf("Token %zu: %s\n", i + 1, tokens[i]);
+        }
+        free(tokens[i]); // Free allocated memory for each token
+    }
+
+    free(tokens); // Free allocated memory for the array of tokens
+
+    for (size_t i = 0; i < num_tokens; i++) {
+        printf("\nPARAMERTESASFSD: %s\n", parameters[i]);
+    }
+    
+
+    return 0;
+}
+
 void extract_request_body(const char* payload, size_t payload_size, char** body, size_t* body_size) {
     // Find the position of the blank line separating headers from the body
     const char* blank_line = strstr(payload, "\r\n\r\n");
     int blank_line_count = 4;
-
     if (blank_line == NULL) {
         *body = NULL;
         *body_size = 0;
@@ -170,7 +204,6 @@ void extract_request_body(const char* payload, size_t payload_size, char** body,
 
     size_t header_length = blank_line - payload + blank_line_count;
     size_t body_length = payload_size - header_length;
-
     if (body_length <= 0) {
         *body = NULL;
         *body_size = 0;

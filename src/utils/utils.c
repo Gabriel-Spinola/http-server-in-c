@@ -135,3 +135,38 @@ const char* status_code_to_string(status_e code) {
             return "UNKNOWN";
     }
 }
+
+#define MAX_TOKENS 100 // Adjust this according to your needs
+#define MAX_TOKEN_LENGTH 100 // Adjust this according to your needs
+
+char** split(const char* string, const char* delimiter, int* num_tokens) {
+    char** final = (char**)malloc(MAX_TOKENS * sizeof(char*));
+    if (final == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    char* copy = strdup(string); // Make a copy of the original string
+    if (copy == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    char* token = strtok(copy, delimiter);
+    size_t count = 0;
+    while (token != NULL && count < strlen(string) - 1) {
+        final[count] = (char*)malloc((strlen(token) + 1) * sizeof(char));
+        if (final[count] == NULL) {
+            fprintf(stderr, "Memory allocation failed\n");
+            exit(EXIT_FAILURE);
+        }
+        strcpy(final[count], token);
+        count++;
+        token = strtok(NULL, delimiter);
+    }
+    final[count] = NULL; // Null-terminate the array of strings
+
+    free(copy); // Free the copy of the original string
+    *num_tokens = count;
+    return final;
+}

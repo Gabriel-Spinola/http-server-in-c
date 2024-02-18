@@ -39,6 +39,7 @@
     const char* get_mime_type(const char* file_extension);
     const char* http_method_to_string(http_method_e method);
     const char* status_code_to_string(status_e code);
+    char** split(const char* string, const char* delimiter, int* num_tokens);
 
     char* decode_url(const char* src);
     

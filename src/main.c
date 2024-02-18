@@ -12,6 +12,7 @@
 
 #define DEBUG 1
 
+static void test_router(const request_handler_t* request, char* response);
 static void print_req_debug(const request_handler_t* request);
 
 int main() {
@@ -21,11 +22,10 @@ int main() {
 }
 
 // TODO - read url parameters like: /[id]
-// TODO - extract body from req payload
 void router(const request_handler_t* request, char* response) {
     ROUTER_START()
     
-    ROUTE_GET("/ping") {
+    ROUTE_GET("/ping/:id/:2d") {
         #if DEBUG
             print_req_debug(request);
         #endif
@@ -37,50 +37,7 @@ void router(const request_handler_t* request, char* response) {
     }
 
     ROUTE_POST("/") {
-        #if DEBUG
-            print_req_debug(request);
-        #endif
-
-        char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
-
-        if (request->body == NULL) {
-            const char* err_message = status_code_to_string(STATUS_BAD_REQUEST);
-            build_http_response(response, header_buffer, STATUS_BAD_REQUEST, err_message);
-
-            free(header_buffer);
-
-            return;
-        }
-
-        json_object* body_json = json_object_new_object();
-        body_json = json_tokener_parse(request->body);
-        if (body_json == NULL) {
-            const char* err_message = status_code_to_string(STATUS_INTERNAL_ERROR);
-            build_http_response(response, header_buffer, STATUS_INTERNAL_ERROR, err_message);
-
-            free(header_buffer);
-
-            return;
-        }
-
-        // Extract and print data from given body
-        json_object* field_value;
-        if (json_object_object_get_ex(body_json, "field", &field_value)) {
-            if (!json_object_is_type(field_value, json_type_int)) {
-                fprintf(stderr, "INVALID TYPE\n");
-            }
-
-            printf("Field value: %d\n", json_object_get_int(field_value));
-        }
-
-        json_object* string_data = json_object_new_string("hello");
-        json_object_object_add(body_json, "extra-data", string_data);
-
-        const char* stringfied_response = json_object_to_json_string(body_json);
-        build_http_response(response, header_buffer, STATUS_OK, stringfied_response);
-
-        json_object_put(body_json);
-        free(header_buffer);
+        test_router(request, response);
     }
 
     NOT_FOUND() {
@@ -93,6 +50,53 @@ void router(const request_handler_t* request, char* response) {
 
         free(header_buffer);
     }
+}
+
+void test_router(const request_handler_t* request, char* response) {
+    #if DEBUG
+        print_req_debug(request);
+    #endif
+
+    char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
+
+    if (request->body == NULL) {
+        const char* err_message = status_code_to_string(STATUS_BAD_REQUEST);
+        build_http_response(response, header_buffer, STATUS_BAD_REQUEST, err_message);
+
+        free(header_buffer);
+
+        return;
+    }
+
+    json_object* body_json = json_object_new_object();
+    body_json = json_tokener_parse(request->body);
+    if (body_json == NULL) {
+        const char* err_message = status_code_to_string(STATUS_INTERNAL_ERROR);
+        build_http_response(response, header_buffer, STATUS_INTERNAL_ERROR, err_message);
+
+        free(header_buffer);
+
+        return;
+    }
+
+    // Extract and print data from given body
+    json_object* field_value;
+    if (json_object_object_get_ex(body_json, "field", &field_value)) {
+        if (!json_object_is_type(field_value, json_type_int)) {
+            fprintf(stderr, "INVALID TYPE\n");
+        }
+
+        printf("Field value: %d\n", json_object_get_int(field_value));
+    }
+
+    json_object* string_data = json_object_new_string("hello");
+    json_object_object_add(body_json, "extra-data", string_data);
+
+    const char* stringfied_response = json_object_to_json_string(body_json);
+    build_http_response(response, header_buffer, STATUS_OK, stringfied_response);
+
+    json_object_put(body_json);
+    free(header_buffer);
 }
 
 void print_req_debug(const request_handler_t* request) {

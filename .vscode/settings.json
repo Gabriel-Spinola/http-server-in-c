@@ -6,7 +6,8 @@
         "json.h": "c",
         "stdio.h": "c",
         "cstring": "c",
-        "variant": "c"
+        "variant": "c",
+        "format": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
