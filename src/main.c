@@ -43,7 +43,7 @@ void router(request_handler_t request, char* response) {
 
     NOT_FOUND() {
         char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
-        build_http_response(response,  header_buffer, STATUS_NOT_FOUND, "404 Not Found");
+        build_http_response(response,  header_buffer, STATUS_NOT_FOUND, status_code_to_string(STATUS_NOT_FOUND));
 
         free(header_buffer);
     }

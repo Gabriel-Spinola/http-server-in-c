@@ -8,7 +8,6 @@
 #include <unistd.h>
 #include <asm-generic/socket.h>
 #include <pthread.h>
-#include <regex.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
@@ -97,10 +96,20 @@ void* handle_client(void* client_socket_fd) {
     ssize_t bytes_received = recv(client_fd, buffer, BUFFER_SIZE, 0);
     if (bytes_received < 0) {
         fprintf(stderr, "Failed to read client buffer\n");
+
+        close(client_fd);
+        free(buffer);
+
+        return NULL;
     }
 
     if (bytes_received == 0) {
         fprintf(stderr, "Client disconnected unexpectedly\n");
+
+        close(client_fd);
+        free(buffer);
+
+        return NULL;
     }
 
     // NOTE - At this point the buffer is storing all the request data 
