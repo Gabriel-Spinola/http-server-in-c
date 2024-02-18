@@ -12,8 +12,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-char* method;
-char* uri;
+char* external_req_method;
+char* external_req_uri;
 
 void start_server() {
     print_title();
@@ -90,7 +90,7 @@ void* handle_client(void* client_socket_fd) {
     // NOTE - Cast the void pointer into the correct type
     socket_t client_fd = *((socket_t*) client_socket_fd);
     char* buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
-   
+
     // Receive request data
     ssize_t bytes_received = recv(client_fd, buffer, BUFFER_SIZE, 0);
     if (bytes_received < 0) {
@@ -100,14 +100,10 @@ void* handle_client(void* client_socket_fd) {
     if (bytes_received == 0) {
         fprintf(stderr, "Client disconnected unexpectedly\n");
     }
-    
-    req.method=buffer;
-    printf("\nBEFORE BUFFER:\n%s\nEND BEFORE BUFFER\n", buffer);
 
-    // Set payload data from buffer
-    //req.payload = buffer;
-    //req.payload_size = strlen(buffer);
-    
+    // NOTE - At this point the buffer is storing all the request data 
+    req.payload = malloc(strlen(buffer));
+    req.payload = memcpy(req.payload, buffer, strlen(buffer));
 
     if (bytes_received > 0) {
         regex_t regex;
@@ -115,35 +111,29 @@ void* handle_client(void* client_socket_fd) {
 
         regcomp(&regex, "^(GET|POST|PUT|DELETE) /([^ ]*) HTTP/1", REG_EXTENDED);
 
+        // NOTE - Mutate buffer into method
         if (regexec(&regex, buffer, 2, matches, 0) == 0) {
             // get file name
             buffer[matches[1].rm_eo] = '\0';
-            const char* url_encoded_filename = buffer + matches[1].rm_so;
 
-            method = buffer;
-            uri = "/";            
+            external_req_method = buffer;
+            external_req_uri = "/";            
 
-            // decode url
-            char* filename = decode_url(url_encoded_filename);
-
-            // Get file extension
-            char file_extension[32];
-            strcpy(file_extension, get_file_extension(filename));
+            req.method = external_req_method;
 
             // Build http response
             char* response = (char*) malloc(BUFFER_SIZE * 2 * sizeof(char));
             size_t response_length;
 
-            build_http_response(filename, file_extension, response, &response_length);
-
-            route(req);
+            // build_http_response("filename", "json", response, &response_length);
+            route(req, response);
+            response_length = strlen(response);
 
             // Send HTTP response to client
             send(client_fd, response, response_length, 0);
 
             fflush(stdout);
             free(response);
-            free(filename);
         }
 
         regfree(&regex);
@@ -162,9 +152,9 @@ void build_http_response(
     size_t* response_length
 ) {
     const char* mime_type = get_mime_type(file_extension);
-    char* header = (char*) malloc(BUFFER_SIZE * sizeof(char));
+    char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
 
-    snprintf(header, BUFFER_SIZE,
+    snprintf(header_buffer, BUFFER_SIZE,
         "HTTP/1.1 200 OK\r\n"
         "Content-Type: %s\r\n"
         "\r\n",
@@ -193,8 +183,8 @@ void build_http_response(
 
     // Copy header to response buffer
     *response_length = 0;
-    memcpy(response, header, strlen(header));
-    *response_length += strlen(header);
+    memcpy(response, header_buffer, strlen(header_buffer));
+    *response_length += strlen(header_buffer);
 
     // Copy file to response buffer
     ssize_t bytes_read = read(
@@ -206,6 +196,6 @@ void build_http_response(
         *response_length += bytes_read;
     }
 
-    free(header);
+    free(header_buffer);
     close(file_fd);
 }

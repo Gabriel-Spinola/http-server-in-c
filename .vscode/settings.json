@@ -1,5 +1,10 @@
 {
     "files.associations": {
-        "string.h": "c"
-    }
+        "string.h": "c",
+        "unistd.h": "c",
+        "socket.h": "c",
+        "json.h": "c",
+        "stdio.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }
