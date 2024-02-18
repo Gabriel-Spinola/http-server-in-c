@@ -12,6 +12,7 @@
 #include <fcntl.h>
 
 static void extract_method_and_uri(const char* buffer, char** method, char** uri);
+static void extract_request_body(const char* payload, size_t payload_size, char** body, size_t* body_size);
 
 char* external_req_method;
 char* external_req_uri;
@@ -112,7 +113,6 @@ void* handle_client(void* client_socket_fd) {
         return NULL;
     }
 
-    // NOTE - At this point the buffer is storing all the request data 
     req.payload_size = 0;
     req.payload = (char*) malloc(bytes_received + 1);
     if (req.payload == NULL) {
@@ -121,19 +121,21 @@ void* handle_client(void* client_socket_fd) {
         exit(EXIT_FAILURE);
     }
 
-    req.payload = memcpy(req.payload, buffer, bytes_received);
-    // FIXME - Can't get the payload size, it's throwing a seg fault 
-    // req.payload_size = (size_t) bytes_received;
+    memcpy(req.payload, buffer, bytes_received);
+    req.payload_size = (size_t) bytes_received;
 
     extract_method_and_uri(buffer, &external_req_method, &external_req_uri);
     req.method = external_req_method;
     req.uri = external_req_uri;
 
+    req.body_size = 0;
+    extract_request_body(req.payload, req.payload_size, &req.body, &req.body_size);
+
     // Build http response
     char* response = (char*) malloc(BUFFER_SIZE * 2 * sizeof(char));
     size_t response_length;
 
-    router(req, response);
+    router(&req, response);
     response_length = strlen(response);
 
     // Send HTTP response to client
@@ -142,10 +144,45 @@ void* handle_client(void* client_socket_fd) {
     close(client_fd);
 
     fflush(stdout);
+
+    free(req.payload);
     free(response);
     free(buffer);
 
+    if (req.body != NULL) {
+        free(req.body);
+    }
+
     return NULL;
+}
+
+void extract_request_body(const char* payload, size_t payload_size, char** body, size_t* body_size) {
+    // Find the position of the blank line separating headers from the body
+    const char* blank_line = strstr(payload, "\r\n\r\n");
+    int blank_line_count = 4;
+
+    if (blank_line == NULL) {
+        *body = NULL;
+        *body_size = 0;
+
+        return;
+    }
+
+    size_t header_length = blank_line - payload + blank_line_count;
+    size_t body_length = payload_size - header_length;
+
+    if (body_length <= 0) {
+        *body = NULL;
+        *body_size = 0;
+
+        return;
+    }
+
+    *body = (char*) malloc((body_length + 1) * sizeof(char));
+    memcpy(*body, blank_line + blank_line_count, body_length); // skip blank line
+    (*body)[body_length] = '\0';
+
+    *body_size = body_length;
 }
 
 void extract_method_and_uri(const char* buffer, char** method, char** uri) {

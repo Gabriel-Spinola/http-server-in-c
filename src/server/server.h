@@ -6,34 +6,36 @@
     #define MAX_CONNECTION_QUEUE_SIZE 1000
 
     typedef int socket_t;
-    typedef char* buffer_t;
     typedef struct {
         char *method,
              *uri,
              *query_parameter,
-             *protype;
+             *body;
 
         char* payload;
         size_t payload_size;
+        size_t body_size;
     } request_handler_t;
 
+    //REVIEW - NOT IMPLEMENTED
     typedef struct {
         char* status_code;
         char* payload;
     } response_t;
 
-    typedef struct {
-        socket_t client_fd;
-        request_handler_t request_handler;
-    } client_thread_t;
-
     void* handle_client(void* client_socket_fd);
     void start_server();
 
-    extern client_thread_t client_thread_data;
-    extern void router(request_handler_t request, char* response);
+    /// @brief Handles routing in the server
+    /// @param request Request received on the client handler
+    /// @param response Response pointer from client
+    /// @note the router have the resposability to build the response that is going to be sent to the network
+    extern void router(const request_handler_t* request, char* response);
     
+    /// @brief helper variable (method) for the ROUTER macros
     extern char* external_req_method;
+
+    /// @brief helper variable (uri) for the ROUTER macros
     extern char* external_req_uri;
 
     #define ROUTER_START()       if (0) {

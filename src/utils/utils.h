@@ -1,5 +1,12 @@
 #ifndef UTIL_H
 #define UTIL_H
+    #define TYPE_OF(x) _Generic((x), \
+        int: "int", \
+        float: "float", \
+        double: "double", \
+        char *: "string", \
+        default: "unknown")
+
     #define BUFFER_SIZE 1024*5
 
     typedef enum {
@@ -35,6 +42,12 @@
 
     char* decode_url(const char* src);
     
+    /// @brief Build http reponse
+    /// @param response Mutate response
+    /// @param header_buffer  Build and attach header 
+    /// @param status 
+    /// @param body Attach body if not null
+    /// @return Maximum chars of output to write in the BUFFER_SIZE (MAXLEN)
     int build_http_response(
         char* response,
         char* header_buffer,
