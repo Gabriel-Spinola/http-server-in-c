@@ -102,8 +102,17 @@ void* handle_client(void* client_socket_fd) {
     }
 
     // NOTE - At this point the buffer is storing all the request data 
-    req.payload = malloc(strlen(buffer));
-    req.payload = memcpy(req.payload, buffer, strlen(buffer));
+    req.payload_size = 0;
+    req.payload = (char*) malloc(bytes_received + 1);
+    if (req.payload == NULL) {
+        fprintf(stderr, "Failed to allocate memory for request payload\n");
+
+        exit(EXIT_FAILURE);
+    }
+
+    req.payload = memcpy(req.payload, buffer, bytes_received);
+    // FIXME - Can't get the payload size, it's throwing a seg fault 
+    // req.payload_size = (size_t) bytes_received;
 
     if (bytes_received > 0) {
         regex_t regex;
@@ -126,7 +135,7 @@ void* handle_client(void* client_socket_fd) {
             size_t response_length;
 
             // build_http_response("filename", "json", response, &response_length);
-            route(req, response);
+            router(req, response);
             response_length = strlen(response);
 
             // Send HTTP response to client
@@ -143,59 +152,4 @@ void* handle_client(void* client_socket_fd) {
     free(buffer);
 
     return NULL;
-}
-
-void build_http_response(
-    const char* file_name,
-    const char* file_extension,
-    char* response,
-    size_t* response_length
-) {
-    const char* mime_type = get_mime_type(file_extension);
-    char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
-
-    snprintf(header_buffer, BUFFER_SIZE,
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: %s\r\n"
-        "\r\n",
-        mime_type
-    );
-
-    int file_fd = open(file_name, O_RDONLY);
-    if (file_fd == -1) {
-        snprintf(response, BUFFER_SIZE,
-            "HTTP/1.1 404 Not Found\r\n"
-            "Content-Type: text/plain\r\n"
-            "\r\n"
-            "404 Not Found"
-        );
-
-        *response_length = strlen(response);
-
-        return;
-    }
-
-    // File size for content length
-    struct stat file_stat;
-    fstat(file_fd, &file_stat);
-
-    off_t file_size = file_stat.st_size;
-
-    // Copy header to response buffer
-    *response_length = 0;
-    memcpy(response, header_buffer, strlen(header_buffer));
-    *response_length += strlen(header_buffer);
-
-    // Copy file to response buffer
-    ssize_t bytes_read = read(
-        file_fd,
-        response + *response_length,
-        BUFFER_SIZE - *response_length
-    );
-    while (bytes_read > 0) {
-        *response_length += bytes_read;
-    }
-
-    free(header_buffer);
-    close(file_fd);
 }
