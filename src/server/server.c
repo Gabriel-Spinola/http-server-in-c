@@ -10,13 +10,14 @@
 #include <pthread.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include "../http/http.h"
 
 static void extract_method_and_uri(const char* buffer, char** method, char** uri);
 static void extract_request_body(const char* payload, size_t payload_size, char** body, size_t* body_size);
 
-char* external_req_method;
-char* external_req_uri;
-char parameters[MAX_REQUEST_PARAMETERS][MAX_REQ_PARAMETER_SIZE];
+char* ext_req_method;
+char* ext_req_uri;
+char ext_uri_parameters[MAX_REQUEST_PARAMETERS][MAX_REQ_PARAMETER_SIZE];
 
 void start_server() {
     print_title();
@@ -88,7 +89,7 @@ void start_server() {
 }
 
 void* handle_client(void* client_socket_fd) {
-    request_handler_t req;
+    struct request_handler_t req;
 
     // NOTE - Cast the void pointer into the correct type
     socket_t client_fd = *((socket_t*) client_socket_fd);
@@ -125,9 +126,9 @@ void* handle_client(void* client_socket_fd) {
     memcpy(req.payload, buffer, bytes_received);
     req.payload_size = (size_t) bytes_received;
 
-    extract_method_and_uri(buffer, &external_req_method, &external_req_uri);
-    req.method = external_req_method;
-    req.uri = external_req_uri;
+    extract_method_and_uri(buffer, &ext_req_method, &ext_req_uri);
+    req.method = ext_req_method;
+    req.uri = ext_req_uri;
 
     req.body_size = 0;
     extract_request_body(req.payload, req.payload_size, &req.body, &req.body_size);
@@ -160,11 +161,11 @@ void* handle_client(void* client_socket_fd) {
 int check_route(const char* method, const char* uri) {
     const char* param_start = strchr(uri, ':');
     if (param_start == NULL) {
-        return strcmp(method, external_req_method) == 0 &&
-               strcmp(uri, external_req_uri) == 0;
+        return strcmp(method, ext_req_method) == 0 &&
+               strcmp(uri, ext_req_uri) == 0;
     }
 
-    if (!strcmp(method, external_req_method) == 0) {
+    if (!strcmp(method, ext_req_method) == 0) {
         return 0;
     }
 
@@ -173,9 +174,8 @@ int check_route(const char* method, const char* uri) {
     int route_tok_count;
     int req_tok_count; 
     char** route_tokens = split(uri, delimiter, &route_tok_count);
-    char** request_tokens = split(external_req_uri, delimiter, &req_tok_count);
+    char** request_tokens = split(ext_req_uri, delimiter, &req_tok_count);
 
-    // if both tokens 
     if (route_tok_count != req_tok_count) {
         return 0;
     }
@@ -183,8 +183,6 @@ int check_route(const char* method, const char* uri) {
     int param_count = 0;
     for (size_t i = 0; i < route_tok_count; i++) {
         const char* param = strchr(route_tokens[i], ':');
-
-        printf("%d", !strcmp(route_tokens[i], request_tokens[i]) == 0);
 
         if (param != NULL) {
             if (param_count >= MAX_REQUEST_PARAMETERS - 1) {
@@ -194,7 +192,7 @@ int check_route(const char* method, const char* uri) {
                 return 0;
             }
 
-            strcpy(parameters[param_count], route_tokens[i] + 1);
+            strcpy(ext_uri_parameters[param_count], route_tokens[i] + 1);
 
             param_count++;
         }

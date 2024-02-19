@@ -1,5 +1,0 @@
-{
-    "url": "http://localhost:8080/ping/123/asdasd/123",
-    "method": "GET",
-    "Content-Type": "application/json"
-}

@@ -8,6 +8,7 @@
         "cstring": "c",
         "variant": "c",
         "format": "c",
-        "fcntl.h": "c"
+        "fcntl.h": "c",
+        "http.h": "c"
     }
 }
