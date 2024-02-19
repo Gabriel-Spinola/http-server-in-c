@@ -7,12 +7,12 @@
 /**
  * Implementation repository of https://github.com/zanfranceschi/rinha-de-backend-2024-q1.
  * 
- * REVIEW - At the moment the compiling process is done by the bootstrpa.sh script
+ * REVIEW - At the moment the compiling process is done by the bootstrap.sh script
  * The api/_route.c is a special file storing the API routes. The router function within that file is called in the start_server function.
  * 
  * ## Folders
  * - http/ stores all HTTP-related data and helper functions.
- * - server/ deals with server initialization.
+ * - server/ deals with server initialization & client handling.
  * - api/ contains API implementations.
  * - utils/ provides utility functions.
  * 
