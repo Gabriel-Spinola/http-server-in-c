@@ -38,8 +38,6 @@
              *payload,
              *body;
 
-        char parameters[MAX_REQUEST_PARAMETERS][MAX_REQ_PARAMETER_SIZE];
-
         size_t payload_size;
         size_t body_size;
     };
@@ -55,6 +53,12 @@
 
     /// @brief helper variable (uri) for the ROUTER macros
     extern char* ext_req_uri;
+
+    /**
+     * @brief array holding uri parameters used in the ROUTER macro.
+     * 
+     * /uri_example/:id/route/:name -> :id = ext_uri_parameters[0]; :name = ext_uri_parameters[1]
+    */
     extern char ext_uri_parameters[MAX_REQUEST_PARAMETERS][MAX_REQ_PARAMETER_SIZE];
 
     const char* get_mime_type(const char* file_extension);

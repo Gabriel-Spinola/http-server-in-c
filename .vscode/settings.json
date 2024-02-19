@@ -9,6 +9,7 @@
         "variant": "c",
         "format": "c",
         "fcntl.h": "c",
-        "http.h": "c"
+        "http.h": "c",
+        "transacao.h": "c"
     }
 }

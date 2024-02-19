@@ -3,10 +3,32 @@
 /// https://www.geeksforgeeks.org/socket-programming-cc/
 /// https://gist.github.com/retr00exe/3196b0a0de61ba6d46f09b1e49561a52
 
+
+/**
+ * Implementation repository of https://github.com/zanfranceschi/rinha-de-backend-2024-q1.
+ * 
+ * REVIEW - At the moment the compiling process is done by the bootstrpa.sh script
+ * The api/_route.c is a special file storing the API routes. The router function within that file is called in the start_server function.
+ * 
+ * ## Folders
+ * - http/ stores all HTTP-related data and helper functions.
+ * - server/ deals with server initialization.
+ * - api/ contains API implementations.
+ * - utils/ provides utility functions.
+ * 
+ * TODO - Write tests library
+ * TODO - Write api tests (tests/poke)
+ * 
+ * ## Depedencies
+ * - json-c
+ * - pthread
+ * - unix socket api
+ * - (Optional) https://github.com/Gabriel-Spinola/PokeGelo-CLI
+*/
+
 #include "server/server.h"
 #include <stdlib.h>
 
-// TODO - Tests lib
 int main() {
     start_server();
 
