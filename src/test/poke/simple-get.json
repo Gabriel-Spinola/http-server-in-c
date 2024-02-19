@@ -1,8 +1,5 @@
 {
-    "url": "http://localhost:8080/",
-    "method": "POST",
-    "Content-Type": "application/json",
-    "body": {
-        "data": "aa"
-    }
+    "url": "http://localhost:8080/ping/123/asdasd/123",
+    "method": "GET",
+    "Content-Type": "application/json"
 }

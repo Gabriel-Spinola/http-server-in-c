@@ -25,10 +25,13 @@ int main() {
 void router(const request_handler_t* request, char* response) {
     ROUTER_START()
     
-    ROUTE_GET("/ping/:id/:2d") {
+    ROUTE_GET("/ping/:id/:2d/oi") {
         #if DEBUG
             print_req_debug(request);
         #endif
+
+        printf("\nGOT PARAMETER 1: %s\n", parameters[0]);
+        printf("\nGOT PARAMETER 2: %s\n", parameters[1]);
 
         char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
         build_http_response(response,  header_buffer, STATUS_OK, "pong");

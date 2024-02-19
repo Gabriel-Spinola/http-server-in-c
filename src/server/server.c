@@ -164,31 +164,48 @@ int check_route(const char* method, const char* uri) {
                strcmp(uri, external_req_uri) == 0;
     }
 
-    // SPLIT FOR EVERY '/'
-    // RUN THROUGHT IT, IF ROUTE HAVE ':' ADD TO THE PARAMETERS LIST
-    // CHECK ORDER AND SEND DATA ACCORDINGLY
-    const char* delimiter = "/";
-    int num_tokens;
-    char** tokens = split(uri, delimiter, &num_tokens);
-
-    printf("Number of tokens: %zu\n", 3);
-    for (size_t i = 0; i < num_tokens; i++) {
-        const char* param = strchr(tokens[i], ':');
-        if (param == NULL) {
-            strcpy(parameters[i], param);
-            printf("Token %zu: %s\n", i + 1, tokens[i]);
-        }
-        free(tokens[i]); // Free allocated memory for each token
+    if (!strcmp(method, external_req_method) == 0) {
+        return 0;
     }
 
-    free(tokens); // Free allocated memory for the array of tokens
+    const char* delimiter = "/";
 
-    for (size_t i = 0; i < num_tokens; i++) {
-        printf("\nPARAMERTESASFSD: %s\n", parameters[i]);
+    int route_tok_count;
+    int req_tok_count; 
+    char** route_tokens = split(uri, delimiter, &route_tok_count);
+    char** request_tokens = split(external_req_uri, delimiter, &req_tok_count);
+
+    // if both tokens 
+    if (route_tok_count != req_tok_count) {
+        return 0;
     }
     
+    int param_count = 0;
+    for (size_t i = 0; i < route_tok_count; i++) {
+        const char* param = strchr(route_tokens[i], ':');
 
-    return 0;
+        printf("%d", !strcmp(route_tokens[i], request_tokens[i]) == 0);
+
+        if (param != NULL) {
+            strcpy(parameters[param_count], route_tokens[i] + 1);
+
+            param_count++;
+        }
+        else if (!strcmp(route_tokens[i], request_tokens[i]) == 0) {
+            free(route_tokens[i]);
+            free(request_tokens[i]);
+
+            return 0;
+        }
+
+        free(route_tokens[i]);
+        free(request_tokens[i]);
+    }
+
+    free(route_tokens);
+    free(request_tokens);
+    
+    return 1;
 }
 
 void extract_request_body(const char* payload, size_t payload_size, char** body, size_t* body_size) {
