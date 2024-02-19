@@ -187,6 +187,13 @@ int check_route(const char* method, const char* uri) {
         printf("%d", !strcmp(route_tokens[i], request_tokens[i]) == 0);
 
         if (param != NULL) {
+            if (param_count >= MAX_REQUEST_PARAMETERS - 1) {
+                free(route_tokens[i]);
+                free(request_tokens[i]);
+
+                return 0;
+            }
+
             strcpy(parameters[param_count], route_tokens[i] + 1);
 
             param_count++;
