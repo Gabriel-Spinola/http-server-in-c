@@ -6,6 +6,7 @@
 #include "server/server.h"
 #include <stdlib.h>
 
+// TODO - Tests lib
 int main() {
     start_server();
 
