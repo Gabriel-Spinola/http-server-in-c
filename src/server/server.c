@@ -192,7 +192,7 @@ int check_route(const char* method, const char* uri) {
                 return 0;
             }
 
-            strcpy(ext_uri_parameters[param_count], route_tokens[i] + 1);
+            strcpy(ext_uri_parameters[param_count], request_tokens[i]);
 
             param_count++;
         }
