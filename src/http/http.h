@@ -54,6 +54,7 @@
     /// @brief helper variable (uri) for the ROUTER macros
     extern char* ext_req_uri;
 
+    /// TODO - We should be using the request_handler_t to access the uri parameters, not the extern variable directly
     /**
      * @brief array holding uri parameters used in the ROUTER macro.
      * 
