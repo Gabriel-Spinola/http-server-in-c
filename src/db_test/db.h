@@ -7,7 +7,6 @@
     #include <stdbool.h>
     #include "utils.c"
     int check_db(int id);
-    void tokenize_args(char headers[], char bodies[]);
     void jsonify_data(char headers[], char bodies[]);
 
 #endif
