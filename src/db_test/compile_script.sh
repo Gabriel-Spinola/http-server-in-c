@@ -1,6 +1,6 @@
 #!/bin/bash
 
-gcc db.c -o db
+gcc -o db -ljson-c db.c
 
 if ! [ $? -eq 0 ]; then
     echo "C program failed with an error"
