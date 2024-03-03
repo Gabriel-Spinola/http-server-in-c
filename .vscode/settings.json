@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "string.h": "c",
+        "unistd.h": "c",
+        "socket.h": "c",
+        "json.h": "c",
+        "stdio.h": "c",
+        "cstring": "c",
+        "variant": "c",
+        "format": "c",
+        "fcntl.h": "c",
+        "http.h": "c",
+        "transacao.h": "c"
+    }
+}

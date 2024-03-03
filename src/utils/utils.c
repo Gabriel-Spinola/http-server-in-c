@@ -40,6 +40,41 @@ char* decode_url(const char* src) {
     return decoded;
 }
 
+#define MAX_TOKENS 100 // Adjust this according to your needs
+#define MAX_TOKEN_LENGTH 100 // Adjust this according to your needs
+
+char** split(const char* string, const char* delimiter, int* num_tokens) {
+    char** final = (char**)malloc(MAX_TOKENS * sizeof(char*));
+    if (final == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    char* copy = strdup(string); // Make a copy of the original string
+    if (copy == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    char* token = strtok(copy, delimiter);
+    size_t count = 0;
+    while (token != NULL && count < strlen(string) - 1) {
+        final[count] = (char*)malloc((strlen(token) + 1) * sizeof(char));
+        if (final[count] == NULL) {
+            fprintf(stderr, "Memory allocation failed\n");
+            exit(EXIT_FAILURE);
+        }
+        strcpy(final[count], token);
+        count++;
+        token = strtok(NULL, delimiter);
+    }
+    final[count] = NULL; // Null-terminate the array of strings
+
+    free(copy); // Free the copy of the original string
+    *num_tokens = count;
+    return final;
+}
+
 const char* get_file_extension(const char* file_name) {
     const char* dot = strrchr(file_name, '.');
 
@@ -48,14 +83,4 @@ const char* get_file_extension(const char* file_name) {
     }
 
     return dot + 1;
-}
-
-const char* get_mime_type(const char* file_extension) {
-    // NOTE - Add more types if necessary
-
-    if (strcasecmp(file_extension, "json")) {
-        return "application/json";
-    }
-
-    return "application/octet-stream";
 }

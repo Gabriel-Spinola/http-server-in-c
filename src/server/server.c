@@ -8,9 +8,16 @@
 #include <unistd.h>
 #include <asm-generic/socket.h>
 #include <pthread.h>
-#include <regex.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include "../http/http.h"
+
+static void extract_method_and_uri(const char* buffer, char** method, char** uri);
+static void extract_request_body(const char* payload, size_t payload_size, char** body, size_t* body_size);
+
+char* ext_req_method;
+char* ext_req_uri;
+char ext_uri_parameters[MAX_REQUEST_PARAMETERS][MAX_REQ_PARAMETER_SIZE];
 
 void start_server() {
     print_title();
@@ -63,7 +70,6 @@ void start_server() {
         // Client info
         struct sockaddr_in client_address;
         socklen_t client_address_length = sizeof(client_address);
-        
         socket_t* client_fd = malloc(sizeof(socket_t));
 
         *client_fd = accept(server_fd, (struct sockaddr*) &client_address, &client_address_length);
@@ -83,123 +89,186 @@ void start_server() {
 }
 
 void* handle_client(void* client_socket_fd) {
+    struct request_handler_t req;
+
     // NOTE - Cast the void pointer into the correct type
     socket_t client_fd = *((socket_t*) client_socket_fd);
     char* buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
 
     // Receive request data
     ssize_t bytes_received = recv(client_fd, buffer, BUFFER_SIZE, 0);
-
     if (bytes_received < 0) {
         fprintf(stderr, "Failed to read client buffer\n");
+
+        close(client_fd);
+        free(buffer);
+
+        return NULL;
     }
 
     if (bytes_received == 0) {
         fprintf(stderr, "Client disconnected unexpectedly\n");
+
+        close(client_fd);
+        free(buffer);
+
+        return NULL;
     }
-    
-    if (bytes_received > 0) {
-        regex_t regex;
-        regmatch_t matches[2];
 
-        regcomp(&regex, "^GET /([^ ]*) HTTP/1", REG_EXTENDED);
+    req.payload_size = 0;
+    req.payload = (char*) malloc(bytes_received + 1);
+    if (req.payload == NULL) {
+        fprintf(stderr, "Failed to allocate memory for request payload\n");
 
-        if (regexec(&regex, buffer, 2, matches, 0) == 0) {
-            // get file name
-            buffer[matches[1].rm_eo] = '\0';
-            const char* url_encoded_filename = buffer + matches[1].rm_so;
-
-            // decode url
-            char* filename = decode_url(url_encoded_filename);
-            printf(filename);
-
-            // Get file extension
-            char file_extension[32];
-            strcpy(file_extension, get_file_extension(filename));
-
-            // Build http response
-            char* response = (char*) malloc(BUFFER_SIZE * 2 * sizeof(char));
-            size_t response_length;
-            build_http_response(filename, file_extension, response, &response_length);
-
-            // FIXME - For some reason when compiled this function is considered a implicit declaration even tough it is not
-            #pragma GCC diagnostic push
-            #pragma GCC diagnostic ignored "-Wimplicit-function-declaration"
-            request_handler_t req = { 0 };
-            req.method = "GET";
-            route(req);
-            #pragma GCC diagnostic pop
-
-            // Send HTTP response to client
-            send(client_fd, response, response_length, 0);
-
-            fflush(stdout);
-            free(response);
-            free(filename);
-        }
-
-        regfree(&regex);
+        exit(EXIT_FAILURE);
     }
+
+    memcpy(req.payload, buffer, bytes_received);
+    req.payload_size = (size_t) bytes_received;
+
+    extract_method_and_uri(buffer, &ext_req_method, &ext_req_uri);
+    req.method = ext_req_method;
+    req.uri = ext_req_uri;
+
+    req.body_size = 0;
+    extract_request_body(req.payload, req.payload_size, &req.body, &req.body_size);
+
+    // Build http response
+    char* response = (char*) malloc(BUFFER_SIZE * 2 * sizeof(char));
+    size_t response_length;
+
+    router(&req, response);
+    response_length = strlen(response);
+
+    // Send HTTP response to client
+    send(client_fd, response, response_length, 0);
 
     close(client_fd);
 
-    free(client_socket_fd);
+    fflush(stdout);
+
+    free(req.payload);
+    free(response);
     free(buffer);
+
+    if (req.body != NULL) {
+        free(req.body);
+    }
 
     return NULL;
 }
 
-void build_http_response(
-    const char* file_name,
-    const char* file_extension,
-    char* response,
-    size_t* response_length
-) {
-    const char* mime_type = get_mime_type(file_extension);
-    char* header = (char*) malloc(BUFFER_SIZE * sizeof(char));
+int check_route(const char* method, const char* uri) {
+    const char* param_start = strchr(uri, ':');
+    if (param_start == NULL) {
+        return strcmp(method, ext_req_method) == 0 &&
+               strcmp(uri, ext_req_uri) == 0;
+    }
 
-    snprintf(header, BUFFER_SIZE,
-        "HTTP/1.1 200 OK\r\n"
-        "Content-Type: %s\r\n"
-        "\r\n",
-        mime_type
-    );
+    if (!strcmp(method, ext_req_method) == 0) {
+        return 0;
+    }
 
-    int file_fd = open(file_name, O_RDONLY);
-    if (file_fd == -1) {
-        snprintf(response, BUFFER_SIZE,
-            "HTTP/1.1 404 Not Found\r\n"
-            "Content-Type: text/plain\r\n"
-            "\r\n"
-            "404 Not Found"
-        );
+    const char* delimiter = "/";
 
-        *response_length = strlen(response);
+    int route_tok_count;
+    int req_tok_count; 
+    char** route_tokens = split(uri, delimiter, &route_tok_count);
+    char** request_tokens = split(ext_req_uri, delimiter, &req_tok_count);
+
+    if (route_tok_count != req_tok_count) {
+        return 0;
+    }
+    
+    int param_count = 0;
+    for (size_t i = 0; i < route_tok_count; i++) {
+        const char* param = strchr(route_tokens[i], ':');
+
+        if (param != NULL) {
+            if (param_count >= MAX_REQUEST_PARAMETERS - 1) {
+                free(route_tokens[i]);
+                free(request_tokens[i]);
+
+                return 0;
+            }
+
+            strcpy(ext_uri_parameters[param_count], request_tokens[i]);
+
+            param_count++;
+        }
+        else if (!strcmp(route_tokens[i], request_tokens[i]) == 0) {
+            free(route_tokens[i]);
+            free(request_tokens[i]);
+
+            return 0;
+        }
+
+        free(route_tokens[i]);
+        free(request_tokens[i]);
+    }
+
+    free(route_tokens);
+    free(request_tokens);
+    
+    return 1;
+}
+
+void extract_request_body(const char* payload, size_t payload_size, char** body, size_t* body_size) {
+    // Find the position of the blank line separating headers from the body
+    const char* blank_line = strstr(payload, "\r\n\r\n");
+    int blank_line_count = 4;
+    if (blank_line == NULL) {
+        *body = NULL;
+        *body_size = 0;
 
         return;
     }
 
-    // File size for content length
-    struct stat file_stat;
-    fstat(file_fd, &file_stat);
+    size_t header_length = blank_line - payload + blank_line_count;
+    size_t body_length = payload_size - header_length;
+    if (body_length <= 0) {
+        *body = NULL;
+        *body_size = 0;
 
-    off_t file_size = file_stat.st_size;
-
-    // Copy header to response buffer
-    *response_length = 0;
-    memcpy(response, header, strlen(header));
-    *response_length += strlen(header);
-
-    // Copy file to response buffer
-    ssize_t bytes_read = read(
-        file_fd,
-        response + *response_length,
-        BUFFER_SIZE - *response_length
-    );
-    while (bytes_read > 0) {
-        *response_length += bytes_read;
+        return;
     }
 
-    free(header);
-    close(file_fd);
+    *body = (char*) malloc((body_length + 1) * sizeof(char));
+    memcpy(*body, blank_line + blank_line_count, body_length); // skip blank line
+    (*body)[body_length] = '\0';
+
+    *body_size = body_length;
+}
+
+void extract_method_and_uri(const char* buffer, char** method, char** uri) {
+    // Find the first space character
+    const char* space_ptr = strchr(buffer, ' ');
+    if (space_ptr == NULL) {
+        fprintf(stderr, "Invalid HTTP request format: missing space\n");
+        return;
+    }
+
+    // Calculate the length of the method
+    size_t method_len = space_ptr - buffer;
+
+    // Allocate memory for the method and copy it
+    *method = (char*)malloc(method_len + 1);
+    strncpy(*method, buffer, method_len);
+    (*method)[method_len] = '\0'; // Null-terminate the method string
+
+    // Find the next space character after the method
+    const char* space_ptr2 = strchr(space_ptr + 1, ' ');
+    if (space_ptr2 == NULL) {
+        fprintf(stderr, "Invalid HTTP request format: missing second space\n");
+        free(*method);
+        return;
+    }
+
+    // Calculate the length of the URI
+    size_t uri_len = space_ptr2 - (space_ptr + 1);
+
+    // Allocate memory for the URI and copy it
+    *uri = (char*)malloc(uri_len + 1);
+    strncpy(*uri, space_ptr + 1, uri_len);
+    (*uri)[uri_len] = '\0'; // Null-terminate the URI string
 }
