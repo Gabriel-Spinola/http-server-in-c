@@ -25,7 +25,12 @@ services:
       - POSTGRES_DB=db_rinha
     ports:
       - "5432:5432"
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
     volumes:
+      - ./database/postgre-logs:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     command: postgres -c checkpoint_timeout=600 -c max_wal_size=4096 -c synchronous_commit=0 -c full_page_writes=0
     deploy:
