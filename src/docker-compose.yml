@@ -5,6 +5,11 @@ services:
     image: http-server
     ports:
       - "8080:8080"
+    depends_on: # The api waits until the database is fully initialized
+      - database
+    links:
+      - database
+    entrypoint: ["./wait-for-it.sh", "database:5432", "--", "./bootstrap.sh"]
     deploy:
       resources:
         limits:
@@ -17,10 +22,10 @@ services:
     environment:
       - POSTGRES_PASSWORD=rinha_pass
       - POSTGRES_USER=postgres
+      - POSTGRES_DB=db_rinha
     ports:
       - "5432:5432"
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     command: postgres -c checkpoint_timeout=600 -c max_wal_size=4096 -c synchronous_commit=0 -c full_page_writes=0
     deploy:

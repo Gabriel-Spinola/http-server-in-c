@@ -10,6 +10,7 @@
         "format": "c",
         "fcntl.h": "c",
         "http.h": "c",
-        "transacao.h": "c"
+        "transacao.h": "c",
+        "libpq-fe.h": "c"
     }
 }

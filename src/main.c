@@ -36,9 +36,11 @@
 */
 
 #include "server/server.h"
+#include "database/database.h"
 #include <stdlib.h>
 
 int main() {
+    init_database();    
     start_server();
 
     return EXIT_SUCCESS;
