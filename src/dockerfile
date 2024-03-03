@@ -1,16 +1,3 @@
-# Use an official image of gcc as a parent image
-#FROM gcc:latest
-# Set the working directory in the container
-#WORKDIR /database
-# Copy the current directory contents into the container at /app
-#COPY . /database/
-# Install SQLite3 development libraries
-#RUN apt-get update && apt-get install -y libsqlite3-dev
-# Compile the C code
-#RUN gcc -o wilson database/database.c -lsqlite3
-# Run the application when the container launches
-#CMD ["./wilson"]
-
 FROM alpine:latest
 # Install SQLite
 RUN apk --no-cache add sqlite
