@@ -1,28 +1,30 @@
-version: '3'
+version: '3.5'
 
 services:
-  sqlite-container:
-    image: alpine:latest
-    volumes:
-      - ./database:/data
-    command: sh -c "apk --no-cache add sqlite && cp /data/initial-db.sqlite /data/db.sqlite && sqlite3 /data/db.sqlite < /data/init.sql && tail -f /dev/null"
-    container_name: sqlite-container
-
-  sqlitebrowser:
-    image: linuxserver/sqlitebrowser
+  api: 
+    image: http-server
     ports:
-      - "3000:3000"
-    depends_on:
-      - sqlite-container
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=UTC
-      - ENABLE_UWSGI=true
-    volumes:
-      - sqlite_data:/data/db
-    container_name: sqlitebrowser
+      - "8080:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.55"
+          memory: "200MB"
 
-volumes:
-  sqlite_data:
-    external: true
+  database:
+    image: postgres:latest
+    hostname: database
+    environment:
+      - POSTGRES_PASSWORD=rinha_pass
+      - POSTGRES_USER=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: postgres -c checkpoint_timeout=600 -c max_wal_size=4096 -c synchronous_commit=0 -c full_page_writes=0
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "140MB"
