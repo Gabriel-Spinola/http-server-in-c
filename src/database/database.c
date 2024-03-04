@@ -7,14 +7,7 @@
 
 int pqlib_version;
 
-void exit_failure(PGconn* conn, PGresult* res) {
-    if (res != NULL) {
-        PQclear(res);
-    }
-
-    PQfinish(conn);
-    exit(1);
-}
+static void exit_failure(PGconn* conn, PGresult* res);
 
 void init_database() {
     printf("Starting Database...\n");
@@ -29,11 +22,28 @@ void init_database() {
     pqlib_version = PQlibVersion();
     printf("Database have been successfully initialized.\n- Postgres Version: %d\n", pqlib_version);
 
-    PGresult* res = PQexec(conn, "SELECT * FROM");
+    // ANCHOR - Select example
+    PGresult* res = PQexec(conn, "SELECT * FROM clientes");
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         printf("No data retrived");
     }
 
+    int rows = PQntuples(res);
+    for (int i = 0; i < rows; i++) {
+        printf("%s %s \n", PQgetvalue(res, i, 0), 
+            PQgetvalue(res, i, 1));
+    }
+
     PQclear(res);
+
     PQfinish(conn);
+}
+
+void exit_failure(PGconn* conn, PGresult* res) {
+    if (res != NULL) {
+        PQclear(res);
+    }
+
+    PQfinish(conn);
+    exit(1);
 }

@@ -20,6 +20,7 @@
  * - json-c
  * - pthread
  * - unix socket api
+ * - pqlib
  * - (Optional) https://github.com/Gabriel-Spinola/PokeGelo-CLI
  * 
  * # Todos
@@ -28,7 +29,6 @@
  * TODO - Write api tests (tests/poke)
  * 
  * ## API TODOs
- * TODO - Database
  * TODO - Extrato route
  * TODO - Transacao route
  * TODO - Deploy

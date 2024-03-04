@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <json-c/json.h>
 
-static void test_router(const struct request_handler_t* request, char* response);
+static void example_post_route(const struct request_handler_t* request, char* response);
 static void print_req_debug(const struct request_handler_t* request);
 
 void router(const struct request_handler_t* request, char* response) {
@@ -46,7 +46,7 @@ void router(const struct request_handler_t* request, char* response) {
     }
 
     ROUTE_POST("/") {
-        test_router(request, response);
+        example_post_route(request, response);
     }
 
     NOT_FOUND() {
@@ -61,7 +61,7 @@ void router(const struct request_handler_t* request, char* response) {
     }
 }
 
-void test_router(const struct request_handler_t* request, char* response) {
+void example_post_route(const struct request_handler_t* request, char* response) {
     #if DEBUG
         print_req_debug(request);
     #endif
