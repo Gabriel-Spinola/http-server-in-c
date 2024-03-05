@@ -1,0 +1,17 @@
+FROM gcc:latest
+
+WORKDIR /app
+
+COPY . .
+
+RUN chmod +x bootstrap.sh
+RUN apt-get update && apt-get install -y \
+    libjson-c-dev \
+    libpq-dev \
+    wget
+
+RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -O wait-for-it.sh
+RUN chmod +x wait-for-it.sh
+
+    
+CMD ["/bin/bash", "bootstrap.sh"]
