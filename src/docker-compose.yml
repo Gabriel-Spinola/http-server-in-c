@@ -1,8 +1,9 @@
 version: '3.5'
 
 services:
-  api: 
+  api01: &api
     image: http-server
+    hostname: api01
     ports:
       - "8080:8080"
     depends_on: # The api waits until the database is fully initialized
@@ -15,6 +16,32 @@ services:
         limits:
           cpus: "0.55"
           memory: "200MB"
+
+  api02:
+    <<: *api
+    hostname: api02
+    ports:
+      - "8081:8080"
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+     - "9999:9999"
+    depends_on:
+      - api01
+      - api02
+      - database
+    links:
+      - api01
+      - api02
+      - database
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "40MB"
 
   database:
     image: postgres:latest
