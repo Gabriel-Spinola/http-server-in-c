@@ -28,12 +28,6 @@ void init_database() {
 
     pqlib_version = PQlibVersion();
     printf("Database have been successfully initialized.\n- Postgres Version: %d\n", pqlib_version);
-
-    PGresult* res = PQexec(conn, "SELECT * FROM");
-    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-        printf("No data retrived");
-    }
-
-    PQclear(res);
+    
     PQfinish(conn);
 }
