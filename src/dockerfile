@@ -11,5 +11,5 @@ RUN apt-get update && apt-get install -y \
 
 RUN chmod +x wait-for-it.sh
 
-# REVIEW - Check if PROD var is working
-CMD ["/bin/bash", "bootstrap.sh PROD"]
+    
+CMD ["/bin/bash", "bootstrap.sh"]
