@@ -3,6 +3,6 @@
     "method": "POST",
     "Content-Type": "application/json",
     "body": {
-        "data": "data"
+        "key": "value"
     }
 }

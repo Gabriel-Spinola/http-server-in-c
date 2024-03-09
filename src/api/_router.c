@@ -13,7 +13,7 @@ static void print_req_debug(const struct request_handler_t* request);
 
 void router(const struct request_handler_t* request, char* response) {
     ROUTER_START()
-    
+
     ROUTE_GET("/clientes/:id/extrato") {
         #if DEBUG
             print_req_debug(request);
@@ -50,10 +50,6 @@ void router(const struct request_handler_t* request, char* response) {
     }
 
     NOT_FOUND() {
-        #if DEBUG
-            print_req_debug(request);
-        #endif
-
         char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
         build_http_response(response,  header_buffer, STATUS_NOT_FOUND, "404 Not Found");
 
