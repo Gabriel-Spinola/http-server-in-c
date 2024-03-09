@@ -102,8 +102,6 @@ int get_client_transactions(
 
         strcpy(model[row]->description, PQgetvalue(res, row, 4));
         strcpy(model[row]->done, PQgetvalue(res, row, 5));
-
-        printf("MODEL_id: %i\n", model[row]->id);
     }
 
     return 1;

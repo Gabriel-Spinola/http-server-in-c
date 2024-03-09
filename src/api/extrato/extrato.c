@@ -87,8 +87,6 @@ void extrato_route(const struct request_handler_t* request, char* response) {
     }
     PQclear(res);
 
-    printf("Balance: %d | %d | %d\n", balance.id, balance.client_id, balance.value);
-
     ok = get_client_data(&client, m_conn, res, client_id);
     if (!ok) {
         PQclear(res);
@@ -96,8 +94,6 @@ void extrato_route(const struct request_handler_t* request, char* response) {
         return build_error_response(response, header_buffer, STATUS_INTERNAL_ERROR);
     }
     PQclear(res);
-
-    printf("CLIENT PASSED\n");
 
     ok = get_client_transactions(last_transactions, m_conn, res, client_id);
     if (!ok) {
@@ -109,8 +105,6 @@ void extrato_route(const struct request_handler_t* request, char* response) {
 
     char extract_time[30];
     get_current_time(extract_time);
-
-    printf("TIME PASSED\n");
 
     const char* stringfied_response = build_response_json_body(
         balance.value,
