@@ -1,7 +1,7 @@
 #!/bin/bash
 
 output_exec="main"
-env=DEV
+env=$1
 
 # Find all .c files recursively in current directory and subdirectories
 source_files=$(find . -type f -name '*.c')
