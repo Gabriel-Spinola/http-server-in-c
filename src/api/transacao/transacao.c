@@ -66,7 +66,15 @@ void transacao_route(const struct request_handler_t* request, char* response) {
         return build_error_response(response, header_buffer, STATUS_BAD_REQUEST);
     }
 
-    int ok = handle_transaction(transaction->type, m_conn, res, client_id, 100, "desc");
+    int ok = handle_transaction(
+        transaction->type,
+        m_conn,
+        res,
+        client_id,
+        transaction->value,
+        transaction->description
+    );
+
     PQclear(res);
     if (!ok) {
         if (strlen(PQerrorMessage(m_conn)) != 0) {
@@ -134,7 +142,6 @@ static void set_transaction_fields_values(
         }
 
         transaction->value = json_object_get_int(field_value);
-        printf("Value value: %d\n", transaction->value);
     }
     
     // This one is char;
@@ -144,7 +151,6 @@ static void set_transaction_fields_values(
         }
 
         strncpy(&transaction->type, json_object_get_string(field_value), 1);
-        printf("Type value: %c\n", transaction->type);
     }
 
     // This one is string;
@@ -154,17 +160,14 @@ static void set_transaction_fields_values(
         }
         
         strcpy(transaction->description, json_object_get_string(field_value));
-        printf("Description value: %s\n", transaction->description);
     }
 
     char current_time[30]; 
     get_current_time(current_time);
 
     // Print the formatted time
-    printf("Formatted time: %s\n", current_time);
     strcpy(transaction->done, current_time);
-    printf("Time value %s\n", transaction->done);
 
-    json_object_put(body_json);
-    json_object_put(field_value);
+    // json_object_put(body_json);
+    // json_object_put(field_value);
 }

@@ -20,8 +20,6 @@ services:
   api02:
     <<: *api
     hostname: api02
-    ports:
-      - "8081:8080"
 
   nginx:
     image: nginx:latest
