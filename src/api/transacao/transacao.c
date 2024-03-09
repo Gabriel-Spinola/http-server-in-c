@@ -1,5 +1,6 @@
 #include "transacao.h"
 #include "../../http/http.h"
+#include "../../utils/utils.h"
 #include "../../database/models/model.h"
 #include "../../database/database.h"
 #include <stdio.h>
@@ -73,25 +74,8 @@ void set_transaction_fields_values(const struct request_handler_t* request, tran
         printf("Description value: %s\n", transaction->description);
     }
 
-    // Get current time
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-
-    // Convert current time to struct tm (time components)
-    struct tm* time_info = localtime(&tv.tv_sec);
-
-    if (time_info == NULL) {
-        fprintf(stderr, "Failed to get time information\n");
-        return;  // Return an error code
-    }
-
-    // Format the time
-    char formatted_time[30];  // Adjust the size based on your needs
-    strftime(formatted_time, sizeof(formatted_time), "%Y-%m-%dT%H:%M:%S", time_info);
-
-    // Append fractional seconds to the formatted time
-    snprintf(formatted_time + strlen(formatted_time), sizeof(formatted_time) - strlen(formatted_time),
-             ".%06ldZ", tv.tv_usec);
+    char formatted_time[30]; 
+    get_current_time(formatted_time);
 
     // Print the formatted time
     printf("Formatted time: %s\n", formatted_time);

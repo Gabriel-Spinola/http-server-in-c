@@ -58,7 +58,7 @@ int get_client_transactions(
     struct pg_result* res,
     int client_id
 ) {
-    const char* query = "SELECT * FROM transacoes ORDER BY realizada_em DESC LIMIT 2 WHERE client_id=$1";
+    const char* query = "SELECT * FROM transacoes WHERE cliente_id = $1 ORDER BY realizada_em DESC LIMIT 10";
     const char* param_values[1];
 
     char stringfied_user_id[2];

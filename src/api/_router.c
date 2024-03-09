@@ -14,10 +14,15 @@ static void print_req_debug(const struct request_handler_t* request);
 void router(const struct request_handler_t* request, char* response) {
     ROUTER_START()
 
+    // TODO - Middleware: Validade if user exists to any route with :id
+    // get all possible id
+
     ROUTE_GET("/clientes/:id/extrato") {
         #if DEBUG
             print_req_debug(request);
         #endif
+
+        // validate id
 
         extrato_route(request, response);
     }
@@ -26,6 +31,8 @@ void router(const struct request_handler_t* request, char* response) {
         #if DEBUG
             print_req_debug(request);
         #endif
+
+        // validate id
 
         transacao_route(request, response);
     }
