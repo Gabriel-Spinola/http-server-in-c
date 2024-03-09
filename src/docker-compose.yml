@@ -10,7 +10,7 @@ services:
       - database
     links:
       - database
-    entrypoint: ["./wait-for-it.sh", "database:5432", "--", "./bootstrap.sh"]
+    entrypoint: ["./wait-for-it.sh", "database:5432", "--", "./bootstrap.sh PROD"] # REVIEW - Check if PROD var is working
     deploy:
       resources:
         limits:
