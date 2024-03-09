@@ -2,6 +2,7 @@
 #include "../../http/http.h"
 #include <stdio.h>
 #include "../../database/models/model.h"
+#include "../../server/server.h"
 
 void extrato_route(const struct request_handler_t* request, char* response) {
     client_model_t client;

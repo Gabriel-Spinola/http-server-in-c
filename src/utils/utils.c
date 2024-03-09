@@ -84,3 +84,14 @@ const char* get_file_extension(const char* file_name) {
 
     return dot + 1;
 }
+
+int string_to_int(const char* target) {
+    int output = 0;
+    int offset = 48;
+
+    for (int i = 0; target[i] != '\0'; ++i) {
+        output = output * 10 + (target[i] - offset);
+    }
+
+    return output;
+}

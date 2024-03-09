@@ -6,5 +6,7 @@
     char** split(const char* string, const char* delimiter, int* num_tokens);
     char* decode_url(const char* src);
 
+    int string_to_int(const char* target);
+
     void print_title();
 #endif /* UTIL_H */

@@ -10,6 +10,10 @@
 int pqlib_version;
 struct pg_conn* m_conn;
 
+// set PGconn arg;
+static void dev_populate_db();
+static int convert_seed_file(PGconn* conn);
+
 void exit_failure(PGconn* conn, PGresult* res) {
     if (res != NULL) {
         PQclear(res);
@@ -22,11 +26,11 @@ void exit_failure(PGconn* conn, PGresult* res) {
 void init_database() {
     printf("Starting Database...\n");
 
-    #if defined(DEV)
+#if defined(DEV)
         const char* conn_info = "host=localhost port=5432 dbname=db_rinha user=postgres password=rinha_pass";
-    #else
+#else
         const char* conn_info = "host=database port=5432 dbname=db_rinha user=postgres password=rinha_pass";
-    #endif
+#endif
 
     m_conn = PQconnectdb(conn_info);
     if (PQstatus(m_conn) == CONNECTION_BAD) {
@@ -37,15 +41,34 @@ void init_database() {
     pqlib_version = PQlibVersion();
     printf("Database have been successfully initialized.\n- Postgres Version: %d\n", pqlib_version);
     
+#if defined(DEV) 
+    // dev_populate_db(conn);
+    convert_seed_file(m_conn);
+#endif
+
     PGresult* res = NULL;
     client_model_t base_model;
     int id = 1;
 
     int ok = get_client_data(&base_model, m_conn, res, id);
     if (!ok) {
-        fprintf(stderr, "Failed get data from client with id: %d\n", id);
+        fprintf(stderr, "Failed get data from client %s\n", PQerrorMessage(m_conn));
         exit_failure(m_conn, res);
     }
 
     PQfinish(m_conn);
+}
+
+int convert_seed_file(PGconn* conn) {
+    /*FILE* query_file = fopen("/database/static_init.txt", "r");
+    char* seed;
+
+    if (query_file == NULL) {
+        perror("Error opening query file.");
+    }
+
+    fread(seed, sizeof(query_file), 1, query_file);
+    // PGresult* res = PQexec(conn, seed);
+    fclose(query_file);*/
+    return 0;
 }
