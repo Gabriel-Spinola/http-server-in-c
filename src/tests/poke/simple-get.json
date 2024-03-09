@@ -3,6 +3,8 @@
     "method": "POST",
     "Content-Type": "application/json",
     "body": {
-        "key": "value"
+        "valor": 1000,
+        "tipo" : "c",
+        "descricao" : "descricao"
     }
 }

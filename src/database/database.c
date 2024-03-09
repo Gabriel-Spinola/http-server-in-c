@@ -50,9 +50,29 @@ void init_database() {
     client_model_t base_model;
     int id = 1;
 
-    int ok = get_client_data(&base_model, m_conn, res, id);
+    // ANCHOR - Test 1
+    /*int ok = get_client_data(&base_model, m_conn, res, id);
     if (!ok) {
         fprintf(stderr, "Failed get data from client %s\n", PQerrorMessage(m_conn));
+        exit_failure(m_conn, res);
+    }
+
+    printf("BASE CLIENTE MODEL: %d | %s | %d\n", base_model.id, base_model.name, base_model.limit);
+    PQclear(res);
+
+    ok = debit_from_client(m_conn, res, 1, 100, "123456789");
+    if (!ok) {
+        fprintf(stderr, "Failed to debit from client %s\n", PQerrorMessage(m_conn));
+        exit_failure(m_conn, res);
+    }
+
+    PQclear(res);*/
+
+    balance_model_t* last_two_balances[2];
+    int ok = get_client_balances(last_two_balances, m_conn, res, id);
+    if (!ok) {
+        fprintf(stderr, "Failed to get client balances: %s\n", PQerrorMessage(m_conn));
+
         exit_failure(m_conn, res);
     }
 
@@ -60,15 +80,38 @@ void init_database() {
 }
 
 int convert_seed_file(PGconn* conn) {
-    /*FILE* query_file = fopen("/database/static_init.txt", "r");
-    char* seed;
+    FILE *query_file;
+    char *query_string;
+    long fileSize;
+
+    query_file = fopen("database/static_init.txt", "rb");
 
     if (query_file == NULL) {
-        perror("Error opening query file.");
+        perror("Error opening file");
+        return 1;
     }
 
-    fread(seed, sizeof(query_file), 1, query_file);
-    // PGresult* res = PQexec(conn, seed);
-    fclose(query_file);*/
+    fseek(query_file, 0, SEEK_END);
+    fileSize = ftell(query_file);
+    fseek(query_file, 0, SEEK_SET);
+
+    // Allocate memory for the SQL string;
+    query_string = (char *)malloc(fileSize + 1);  // +1 for null terminator
+
+    if (query_string == NULL) {
+        perror("Error allocating memory");
+        fclose(query_file);
+        return 1;
+    }
+
+    // Read the entire file into the SQL string
+    fread(query_string, 1, fileSize, query_file);
+
+    // Null-terminate the string
+    query_string[fileSize] = '\0';
+
+    free(query_string);
+    fclose(query_file);
+
     return 0;
 }

@@ -26,6 +26,40 @@
         int value;
     } balance_model_t;
 
-    int update_client_limit(struct pg_conn* conn, struct pg_result* res, client_model_t* model);
-    int get_client_data(client_model_t* model, struct pg_conn* conn, struct pg_result* res, int user_id);
+    int debit_from_client(
+        struct pg_conn* conn,
+        struct pg_result* res,
+        int client_id,
+        int value,
+        char description[10]
+    );
+
+    int credit_from_client(
+        struct pg_conn* conn,
+        struct pg_result* res,
+        int client_id,
+        int value,
+        char description[10]
+    );
+
+    int get_client_data(
+        client_model_t* model,
+        struct pg_conn* conn,
+        struct pg_result* res,
+        int client_id
+    );
+
+    int get_client_transactions(
+        transaction_model_t* model[2],
+        struct pg_conn* conn,
+        struct pg_result* res,
+        int client_id
+    );
+
+    int get_client_balances(
+        balance_model_t* model[2],
+        struct pg_conn* conn,
+        struct pg_result* res,
+        int client_id
+    );
 #endif

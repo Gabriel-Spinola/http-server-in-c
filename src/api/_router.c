@@ -94,8 +94,8 @@ void test_router(const struct request_handler_t* request, char* response) {
         printf("Field value: %d\n", json_object_get_int(field_value));
     }
 
-    json_object* string_data = json_object_new_string("hello");
-    json_object_object_add(body_json, "extra-data", string_data);
+    // json_object* string_data = json_object_new_string("hello");
+    // json_object_object_add(body_json, "extra-data", string_data);
 
     const char* stringfied_response = json_object_to_json_string(body_json);
     build_http_response(response, header_buffer, STATUS_OK, stringfied_response);
