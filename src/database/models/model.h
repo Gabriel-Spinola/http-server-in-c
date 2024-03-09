@@ -32,7 +32,7 @@
         struct pg_result* res,
         int client_id,
         int value,
-        const char* description
+        char description[10]
     );
 
     /// @note Always clear `*res` after use    
@@ -41,7 +41,7 @@
         struct pg_result* res,
         int client_id,
         int value,
-        const char* description
+        char description[10]
     );
 
     /// @note Always clear `*res` after use

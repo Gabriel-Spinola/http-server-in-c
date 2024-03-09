@@ -78,9 +78,4 @@
         status_e status,
         const char* body
     );
-    void build_error_response(
-        char* response,
-        char* header_buffer,
-        status_e error_code
-    );
 #endif

@@ -37,17 +37,6 @@ int build_http_response(
     return snprintf(response, BUFFER_SIZE, "%s%s\r\n", header_buffer, body);
 }
 
-void build_error_response(
-    char* response,
-    char* header_buffer,
-    status_e error_code
-) {
-    const char* err_message = status_code_to_string(error_code);
-    build_http_response(response, header_buffer, error_code, err_message);
-
-    free(header_buffer);
-}
-
 const char* http_method_to_string(http_method_e method) {
     switch (method) {
         case GET:
