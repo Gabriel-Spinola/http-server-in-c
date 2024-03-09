@@ -37,6 +37,15 @@ void init_database() {
 
     pqlib_version = PQlibVersion();
     printf("Database have been successfully initialized.\n- Postgres Version: %d\n", pqlib_version);
+
+    struct pg_result* res = NULL;
+    int ok = debit_from_client(m_conn, res, 1, 100, "desc");
+    if (!ok) {
+        fprintf(stderr, "failed to debit from client: %s\n", PQerrorMessage(m_conn));
+        exit_failure(m_conn, res);
+    }
+
+    PQclear(res);
 }
 
 void close_database() {

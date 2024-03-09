@@ -9,18 +9,7 @@
 #include "../../server/server.h"
 #include "../../utils/utils.h"
 
-void internal_error(char* response, char* header_buffer) {
-    const char* err_message = status_code_to_string(STATUS_INTERNAL_ERROR);
-    build_http_response(response, header_buffer, STATUS_INTERNAL_ERROR, err_message);
-
-    if (strlen(PQerrorMessage(m_conn)) != 0) {
-        fprintf(stderr, "%s\n", PQerrorMessage(m_conn));
-    }
-
-    free(header_buffer);
-}
-
-const char* build_response_json_body(
+static const char* build_response_json_body(
     int total,
     char extract_time[30],
     int limit,
@@ -35,7 +24,7 @@ const char* build_response_json_body(
     json_object_object_add(balance_object, "data_extrato", json_object_new_string(extract_time));
     json_object_object_add(balance_object, "limite", json_object_new_int(limit));
 
-    // Construct transactions array 
+    // Construct last transactions array 
     for (int i = 0; i < 10; i++) {
         if (last_transactions[i] == NULL) {
             break;
@@ -56,11 +45,20 @@ const char* build_response_json_body(
         json_object_array_add(last_transactions_array, transaction_object);
     }
 
-    // Add balance object to response object
+    // Add balance & last_transactions objects to response object
     json_object_object_add(response_object, "saldo", balance_object);
     json_object_object_add(response_object, "ultimas_transacoes", last_transactions_array);
 
-    return json_object_to_json_string(response_object);
+    const char* json_string = json_object_to_json_string(response_object);
+
+    char* output = malloc(strlen(json_string) + 1);
+    if (output != NULL) {
+        strcpy(output, json_string);
+    }
+
+    json_object_put(response_object);
+
+    return output;
 }
 
 void extrato_route(const struct request_handler_t* request, char* response) {
@@ -76,7 +74,7 @@ void extrato_route(const struct request_handler_t* request, char* response) {
     if (!ok) {
         PQclear(res);
 
-        return internal_error(response, header_buffer);
+        return build_error_response(response, header_buffer, STATUS_INTERNAL_ERROR);
     }
     PQclear(res);
 
@@ -86,7 +84,7 @@ void extrato_route(const struct request_handler_t* request, char* response) {
     if (!ok) {
         PQclear(res);
 
-        return internal_error(response, header_buffer);
+        return build_error_response(response, header_buffer, STATUS_INTERNAL_ERROR);
     }
     PQclear(res);
 
@@ -97,7 +95,7 @@ void extrato_route(const struct request_handler_t* request, char* response) {
     if (!ok) {
         PQclear(res);
 
-        return internal_error(response, header_buffer);
+        return build_error_response(response, header_buffer, STATUS_INTERNAL_ERROR);
     }
     PQclear(res);
 

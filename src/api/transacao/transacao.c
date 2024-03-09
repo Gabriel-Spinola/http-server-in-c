@@ -8,38 +8,121 @@
 #include <memory.h>
 #include <time.h>
 #include <sys/time.h>
+#include <libpq-fe.h>
 
-void set_transaction_fields_values(const struct request_handler_t* request, transaction_model_t* transaction);
+static void set_transaction_fields_values(const struct request_handler_t* request, transaction_model_t* transaction);
+static int handle_transaction(
+    char type,
+    struct pg_conn *conn,
+    struct pg_result *res,
+    int client_id,
+    int value,
+    const char *description
+);
 
-void transacao_route(const struct request_handler_t* request, char* response) {
-    transaction_model_t* transaction = malloc(sizeof(transaction_model_t));
-    // int* client_id = malloc((int64_t)ext_uri_parameters[0]);
-    // printf("client_id: %i\n", *client_id);
-    // Hard code for tests;
-    int client_id = 3;
+static const char* build_response_json_body(int limit, int balance) {
+    json_object* response_object = json_object_new_object();
 
-    // TA PRONTIN TA FEITO VIADO 1!1!
-    // as requests tao funcionando normalmente
-    // so ta faltando tratar os parametos do ext_uri_parameters
-    // acho uma boa fazer um ponteiro apontando pro array ja q ele ja ta no 
-    // server.c; provavelmente vo ta no 3 sono quando ce tiver lendo; flw/
-    // https://prnt.sc/GOyukD9Fl4_d
-    
-    set_transaction_fields_values(request, transaction);
-    free(transaction);
+    json_object_object_add(response_object, "limite", json_object_new_int(limit));
+    json_object_object_add(response_object, "saldo", json_object_new_int(balance));
 
-    // Executes debit or credit based on transaction->type;
-    // transaction->type == 'c' ? credit_from_client(m_conn, m_result, client_id, transaction->value, transaction->description) 
-    // : 
-    // debit_from_client(m_conn, m_result, client_id, transaction->value, transaction->description); 
+    const char* json_string = json_object_to_json_string(response_object);
 
-    // Pass body as response for test purposes;
-    strcpy(response, request->body);
-    char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
-    build_http_response(response, header_buffer, STATUS_OK, "tes tes");
+    char* output = malloc(strlen(json_string) + 1);
+    if (output != NULL) {
+        strcpy(output, json_string);
+    }
+
+    json_object_put(response_object);
+
+    return output;
 }
 
-void set_transaction_fields_values(const struct request_handler_t* request, transaction_model_t* transaction){
+void transacao_route(const struct request_handler_t* request, char* response) {
+    balance_model_t balance;
+    client_model_t client;
+
+    char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
+    if (header_buffer == NULL) {
+        perror("Failed to allocate memory for header buffer");
+
+        return;
+    }
+    
+    transaction_model_t* transaction = malloc(sizeof(transaction_model_t));
+    if (transaction == NULL) {
+        return build_error_response(response, header_buffer, STATUS_INTERNAL_ERROR);
+    }
+
+    set_transaction_fields_values(request, transaction);
+    
+    struct pg_result* res = NULL;
+    int client_id = string_to_int(ext_uri_parameters[0]);
+
+    // TODO - Add into validation function
+    if (transaction->type != 'c' && transaction->type != 'd') {
+        fprintf(stderr, "Invalid transaction type\n");
+
+        return build_error_response(response, header_buffer, STATUS_BAD_REQUEST);
+    }
+
+    int ok = handle_transaction(transaction->type, m_conn, res, client_id, 100, "desc");
+    PQclear(res);
+    if (!ok) {
+        if (strlen(PQerrorMessage(m_conn)) != 0) {
+            fprintf(stderr, "%s\n", PQerrorMessage(m_conn));
+        }
+
+        return build_error_response(response, header_buffer, STATUS_INTERNAL_ERROR);
+    }
+
+    // NOTE - Post-transaction values
+    ok = get_client_balances(&balance, m_conn, res, client_id);
+    PQclear(res);
+    if (!ok) {    
+        if (strlen(PQerrorMessage(m_conn)) != 0) {
+            fprintf(stderr, "%s\n", PQerrorMessage(m_conn));
+        }
+
+        return build_error_response(response, header_buffer, STATUS_INTERNAL_ERROR);
+    }
+
+    ok = get_client_data(&client, m_conn, res, client_id);
+    PQclear(res);
+    if (!ok) {
+        if (strlen(PQerrorMessage(m_conn)) != 0) {
+            fprintf(stderr, "%s\n", PQerrorMessage(m_conn));
+        }
+
+        return build_error_response(response, header_buffer, STATUS_INTERNAL_ERROR);
+    }
+
+    const char* stringfied_response_body = build_response_json_body(client.limit, balance.value);
+    build_http_response(response, header_buffer, STATUS_OK, stringfied_response_body);
+
+    free(transaction);
+    free(header_buffer);
+}
+
+static int handle_transaction(
+    char type,
+    struct pg_conn *conn,
+    struct pg_result *res,
+    int client_id,
+    int value,
+    const char *description
+) {
+    if (type == 'c') {
+        return credit_from_client(conn, res, client_id, value, description);
+    }
+
+    return debit_from_client(conn, res, client_id, value, description);
+}
+
+static void set_transaction_fields_values(
+    const struct request_handler_t* request,
+    transaction_model_t* transaction
+){
     json_object* body_json = json_tokener_parse(request->body);
     json_object* field_value;
 
@@ -74,11 +157,14 @@ void set_transaction_fields_values(const struct request_handler_t* request, tran
         printf("Description value: %s\n", transaction->description);
     }
 
-    char formatted_time[30]; 
-    get_current_time(formatted_time);
+    char current_time[30]; 
+    get_current_time(current_time);
 
     // Print the formatted time
-    printf("Formatted time: %s\n", formatted_time);
-    strcpy(transaction->done, formatted_time);
+    printf("Formatted time: %s\n", current_time);
+    strcpy(transaction->done, current_time);
     printf("Time value %s\n", transaction->done);
+
+    json_object_put(body_json);
+    json_object_put(field_value);
 }

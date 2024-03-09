@@ -134,7 +134,7 @@ int debit_from_client(
     struct pg_result* res,
     int client_id,
     int value,
-    char description[10]
+    const char* description
 ) {
     const char* query = "SELECT * FROM debitar($1, $2, $3)";
     const char* param_values[3];
@@ -192,7 +192,7 @@ int credit_from_client(
     struct pg_result* res,
     int client_id,
     int value,
-    char description[10]
+    const char* description
 ) {
     const char* query = "SELECT * FROM creditar($1, $2, $3)";
     const char* param_values[3];
@@ -240,5 +240,6 @@ int credit_from_client(
 
     printf("BASE CLIENTE MODEL: %d | %s | %d\n", base_model.id, base_model.name, base_model.limit);
 #endif
+
     return 1;
 }
