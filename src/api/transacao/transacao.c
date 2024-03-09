@@ -17,10 +17,16 @@ void transacao_route(const struct request_handler_t* request, char* response) {
     // printf("client_id: %i\n", *client_id);
     // Hard code for tests;
     int client_id = 3;
+
+    // TA PRONTIN TA FEITO VIADO 1!1!
+    // as requests tao funcionando normalmente
+    // so ta faltando tratar os parametos do ext_uri_parameters
+    // acho uma boa fazer um ponteiro apontando pro array ja q ele ja ta no 
+    // server.c; flw;
     
     set_transaction_fields_values(request, transaction);
 
-    // Executes debit or credit basec on transaction->type;
+    // Executes debit or credit based on transaction->type;
     // transaction->type == 'c' ? credit_from_client(m_conn, m_result, client_id, transaction->value, transaction->description) 
     // : 
     // debit_from_client(m_conn, m_result, client_id, transaction->value, transaction->description); 
