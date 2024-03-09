@@ -53,7 +53,7 @@ int get_client_data(
 /// @note Always clear `*res` after use
 /// @return 0 => Error | 1 => Success | (1 && model[i]->id == NULL) => Data not found 
 int get_client_transactions(
-    transaction_model_t* model[2],
+    transaction_model_t* model[10],
     struct pg_conn* conn,
     struct pg_result* res,
     int client_id
@@ -75,9 +75,23 @@ int get_client_transactions(
 
     int rows = PQntuples(res);
     if (rows <= 0) {
-        printf("No trasactions found\n");
+        printf("No transactions found\n");
 
         return 1;
+    }
+
+    for (int i = 0; i < 10; i++) {
+        model[i] = malloc(sizeof(transaction_model_t));
+        if (model[i] == NULL) {
+            // Handle memory allocation failure
+            fprintf(stderr, "Failed to allocate memory for transaction_model_t\n");
+            // Free previously allocated memory if needed
+            for (int j = 0; j < 10; j++) {
+                free(model[j]);
+            }
+
+            return 0;
+        }
     }
 
     for (int row = 0; row < rows; row++) {
@@ -87,6 +101,9 @@ int get_client_transactions(
         model[row]->type = PQgetvalue(res, row, 3)[0];
 
         strcpy(model[row]->description, PQgetvalue(res, row, 4));
+        strcpy(model[row]->done, PQgetvalue(res, row, 5));
+
+        printf("MODEL_id: %i\n", model[row]->id);
     }
 
     return 1;

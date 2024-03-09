@@ -56,7 +56,7 @@
     /// @note Always clear `*res` after use
     /// @return 0 => Error | 1 => Success | (1 && model->id == NULL) => Data not found 
     int get_client_transactions(
-        transaction_model_t* model[2],
+        transaction_model_t** model,
         struct pg_conn* conn,
         struct pg_result* res,
         int client_id

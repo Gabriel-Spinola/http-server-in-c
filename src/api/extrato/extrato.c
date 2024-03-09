@@ -30,6 +30,10 @@ static const char* build_response_json_body(
             break;
         }
 
+        if (strlen(last_transactions[i]->done) <= 0) {
+            continue;
+        }
+
         json_object* transaction_object = json_object_new_object();
 
         transaction_model_t* current = last_transactions[i];
@@ -64,10 +68,15 @@ static const char* build_response_json_body(
 void extrato_route(const struct request_handler_t* request, char* response) {
     client_model_t client;
     balance_model_t balance;
-    transaction_model_t* last_transactions[10] = { NULL };
+    transaction_model_t* last_transactions[10];
 
     int client_id = string_to_int(ext_uri_parameters[0]);
     char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
+    if (header_buffer == NULL) {
+        perror("Failed lo allocate memory for header buffer");
+
+        return;
+    }
 
     struct pg_result* res = NULL;
     int ok = get_client_balances(&balance, m_conn, res, client_id);
@@ -88,8 +97,7 @@ void extrato_route(const struct request_handler_t* request, char* response) {
     }
     PQclear(res);
 
-    char extract_time[30];
-    get_current_time(extract_time);
+    printf("CLIENT PASSED\n");
 
     ok = get_client_transactions(last_transactions, m_conn, res, client_id);
     if (!ok) {
@@ -99,18 +107,24 @@ void extrato_route(const struct request_handler_t* request, char* response) {
     }
     PQclear(res);
 
-    if (last_transactions[0] != NULL) {
-        for (int i = 0; i < 10; i++) {
-            if (last_transactions[i] == NULL) {
-                continue;
-            }
+    char extract_time[30];
+    get_current_time(extract_time);
 
-            printf("GOT TRANSACTION: %s\n", last_transactions[i]->id);
+    printf("TIME PASSED\n");
+
+    const char* stringfied_response = build_response_json_body(
+        balance.value,
+        extract_time,
+        client.limit,
+        last_transactions
+    );
+    build_http_response(response, header_buffer, STATUS_ACCEPTED, stringfied_response);
+
+    for (int i = 0; i < 10; i++) {
+        if (last_transactions[i] != NULL) {
+            free(last_transactions[i]);
         }
     }
-
-    const char* stringfied_response = build_response_json_body(balance.value, extract_time, client.limit, last_transactions);
-    build_http_response(response, header_buffer, STATUS_ACCEPTED, stringfied_response);
 
     free(header_buffer);
 }
