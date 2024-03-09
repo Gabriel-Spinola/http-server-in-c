@@ -36,11 +36,13 @@
 #include "server/server.h"
 #include "database/database.h"
 #include <stdlib.h>
+#include <libpq-fe.h>
 
 int main() {
     // NOTE - psql -h 0.0.0.0 -p 5432 -U postgres -d db_rinha
     init_database();  
     start_server();
 
+    close_database();
     return EXIT_SUCCESS;
 }

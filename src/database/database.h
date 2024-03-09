@@ -6,4 +6,5 @@
     extern struct pg_conn* m_conn;
 
     void init_database();
+    void close_database();
 #endif

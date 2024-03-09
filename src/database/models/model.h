@@ -26,6 +26,7 @@
         int value;
     } balance_model_t;
 
+    /// @note Always clear `*res` after use
     int debit_from_client(
         struct pg_conn* conn,
         struct pg_result* res,
@@ -34,6 +35,7 @@
         char description[10]
     );
 
+    /// @note Always clear `*res` after use    
     int credit_from_client(
         struct pg_conn* conn,
         struct pg_result* res,
@@ -42,6 +44,8 @@
         char description[10]
     );
 
+    /// @note Always clear `*res` after use
+    /// @return 0 => Error | 1 => Success | (1 && model->id == NULL) => Data not found 
     int get_client_data(
         client_model_t* model,
         struct pg_conn* conn,
@@ -49,6 +53,8 @@
         int client_id
     );
 
+    /// @note Always clear `*res` after use
+    /// @return 0 => Error | 1 => Success | (1 && model->id == NULL) => Data not found 
     int get_client_transactions(
         transaction_model_t* model[2],
         struct pg_conn* conn,
@@ -56,6 +62,8 @@
         int client_id
     );
 
+    /// @note Always clear `*res` after use
+    /// @return 0 => Error | 1 => Success | (1 && model->id == NULL) => Data not found 
     int get_client_balances(
         balance_model_t* model,
         struct pg_conn* conn,

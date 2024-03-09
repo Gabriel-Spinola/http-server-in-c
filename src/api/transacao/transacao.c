@@ -11,8 +11,6 @@
 void set_transaction_fields_values(const struct request_handler_t* request, transaction_model_t* transaction);
 
 void transacao_route(const struct request_handler_t* request, char* response) {
-    struct pg_conn* m_conn;
-    struct pg_result* m_result;
     transaction_model_t* transaction = malloc(sizeof(transaction_model_t));
     // int* client_id = malloc((int64_t)ext_uri_parameters[0]);
     // printf("client_id: %i\n", *client_id);
