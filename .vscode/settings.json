@@ -11,6 +11,12 @@
         "fcntl.h": "c",
         "http.h": "c",
         "transacao.h": "c",
-        "libpq-fe.h": "c"
+        "libpq-fe.h": "c",
+        "model.h": "c",
+        "database.h": "c",
+        "cstdlib": "c",
+        "stdlib.h": "c",
+        "exception": "c",
+        "json_object_iterator.h": "c"
     }
 }

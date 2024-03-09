@@ -1,0 +1,10 @@
+{
+    "url": "http://localhost:9999/clientes/2/transacoes",
+    "method": "POST",
+    "Content-Type": "text/html",
+    "body": {
+        "valor": 1000,
+        "tipo" : "c",
+        "descricao" : "descricao"
+    }
+}

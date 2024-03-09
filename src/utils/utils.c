@@ -3,6 +3,8 @@
 #include <string.h>
 #include <strings.h>
 #include <stdlib.h>
+#include <time.h>
+#include <sys/time.h>
 
 void print_title() {
     char big_c[] =
@@ -83,4 +85,36 @@ const char* get_file_extension(const char* file_name) {
     }
 
     return dot + 1;
+}
+
+int string_to_int(const char* target) {
+    int output = 0;
+    int offset = 48;
+
+    for (int i = 0; target[i] != '\0'; ++i) {
+        output = output * 10 + (target[i] - offset);
+    }
+
+    return output;
+}
+
+void get_current_time(char time_buffer[30]) {
+    // Get current time
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    // Convert current time to struct tm (time components)
+    struct tm* time_info = localtime(&tv.tv_sec);
+
+    if (time_info == NULL) {
+        fprintf(stderr, "Failed to get time information\n");
+        return;  // Return an error code
+    }
+
+    size_t buffer_size = 30;
+    strftime(time_buffer, buffer_size, "%Y-%m-%dT%H:%M:%S", time_info);
+
+    // Append fractional seconds to the formatted time
+    snprintf(time_buffer + strlen(time_buffer), buffer_size - strlen(time_buffer),
+             ".%06ldZ", tv.tv_usec);
 }

@@ -13,11 +13,16 @@ static void print_req_debug(const struct request_handler_t* request);
 
 void router(const struct request_handler_t* request, char* response) {
     ROUTER_START()
-    
+
+    // TODO - Middleware: Validade if user exists to any route with :id
+    // get all possible id
+
     ROUTE_GET("/clientes/:id/extrato") {
         #if DEBUG
             print_req_debug(request);
         #endif
+
+        // validate id
 
         extrato_route(request, response);
     }
@@ -26,6 +31,8 @@ void router(const struct request_handler_t* request, char* response) {
         #if DEBUG
             print_req_debug(request);
         #endif
+
+        // validate id
 
         transacao_route(request, response);
     }
@@ -50,10 +57,6 @@ void router(const struct request_handler_t* request, char* response) {
     }
 
     NOT_FOUND() {
-        #if DEBUG
-            print_req_debug(request);
-        #endif
-
         char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
         build_http_response(response,  header_buffer, STATUS_NOT_FOUND, "404 Not Found");
 
@@ -98,8 +101,8 @@ void test_router(const struct request_handler_t* request, char* response) {
         printf("Field value: %d\n", json_object_get_int(field_value));
     }
 
-    json_object* string_data = json_object_new_string("hello");
-    json_object_object_add(body_json, "extra-data", string_data);
+    // json_object* string_data = json_object_new_string("hello");
+    // json_object_object_add(body_json, "extra-data", string_data);
 
     const char* stringfied_response = json_object_to_json_string(body_json);
     build_http_response(response, header_buffer, STATUS_OK, stringfied_response);

@@ -10,7 +10,7 @@ services:
       - database
     links:
       - database
-    entrypoint: ["./wait-for-it.sh", "database:5432", "--", "./bootstrap.sh"]
+    entrypoint: ["./wait-for-it.sh", "database:5432", "--", "./bootstrap.sh"] # REVIEW - Check if PROD var is working
     deploy:
       resources:
         limits:
@@ -20,8 +20,6 @@ services:
   api02:
     <<: *api
     hostname: api02
-    ports:
-      - "8081:8080"
 
   nginx:
     image: nginx:latest

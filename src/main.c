@@ -3,7 +3,6 @@
 /// https://www.geeksforgeeks.org/socket-programming-cc/
 /// https://gist.github.com/retr00exe/3196b0a0de61ba6d46f09b1e49561a52
 
-
 /**
  * Implementation repository of https://github.com/zanfranceschi/rinha-de-backend-2024-q1.
  * 
@@ -28,7 +27,6 @@
  * TODO - Write api tests (tests/poke)
  * 
  * ## API TODOs
- * TODO - Database
  * TODO - Extrato route
  * TODO - Transacao route
  * TODO - Deploy
@@ -38,10 +36,13 @@
 #include "server/server.h"
 #include "database/database.h"
 #include <stdlib.h>
+#include <libpq-fe.h>
 
 int main() {
-    init_database();    
+    // NOTE - psql -h 0.0.0.0 -p 5432 -U postgres -d db_rinha
+    init_database();  
     start_server();
 
+    close_database();
     return EXIT_SUCCESS;
 }
