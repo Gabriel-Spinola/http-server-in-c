@@ -23,11 +23,12 @@ void exit_failure(PGconn* conn, PGresult* res) {
     exit(1);
 }
 
+/// NOTE - psql -h 0.0.0.0 -p 5432 -U postgres -d db_rinha
 void init_database() {
     printf("Starting Database...\n");
 
 #if defined(DEV)
-        const char* conn_info = "host=localhost port=5432 dbname=db_rinha user=postgres password=rinha_pass";
+        const char* conn_info = "host=0.0.0.0 port=5432 dbname=db_rinha user=postgres password=rinha_pass";
 #else
         const char* conn_info = "host=database port=5432 dbname=db_rinha user=postgres password=rinha_pass";
 #endif
@@ -40,15 +41,19 @@ void init_database() {
 
     pqlib_version = PQlibVersion();
     printf("Database have been successfully initialized.\n- Postgres Version: %d\n", pqlib_version);
-    
-#if defined(DEV) 
-    // dev_populate_db(conn);
-    convert_seed_file(m_conn);
-#endif
 
-    PGresult* res = NULL;
     client_model_t base_model;
     int id = 1;
+
+    PGresult* res = PQexec(m_conn, "SELECT * FROM clientes;");
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "Failed to get client %s\n", PQerrorMessage(m_conn));
+        exit_failure(m_conn, res);
+    }
+
+    printf("Ocurrencies: %d\n", PQntuples(res));
+    //printf("BASE CLIENTE MODEL: %d | %s | %d\n", PQnres, base_model.name, base_model.limit);
+    PQclear(res);
 
     // ANCHOR - Test 1
     /*int ok = get_client_data(&base_model, m_conn, res, id);
@@ -58,8 +63,8 @@ void init_database() {
     }
 
     printf("BASE CLIENTE MODEL: %d | %s | %d\n", base_model.id, base_model.name, base_model.limit);
-    PQclear(res);
-
+    PQclear(res);*/
+/*
     ok = debit_from_client(m_conn, res, 1, 100, "123456789");
     if (!ok) {
         fprintf(stderr, "Failed to debit from client %s\n", PQerrorMessage(m_conn));
@@ -68,50 +73,13 @@ void init_database() {
 
     PQclear(res);*/
 
-    balance_model_t last_two_balances;
+    /*balance_model_t last_two_balances;
     int ok = get_client_balances(&last_two_balances, m_conn, res, id);
     if (!ok) {
         fprintf(stderr, "Failed to get client balances: %s\n", PQerrorMessage(m_conn));
 
         exit_failure(m_conn, res);
-    }
+    }*/
 
     PQfinish(m_conn);
-}
-
-int convert_seed_file(PGconn* conn) {
-    FILE *query_file;
-    char *query_string;
-    long fileSize;
-
-    query_file = fopen("database/static_init.txt", "rb");
-
-    if (query_file == NULL) {
-        perror("Error opening file");
-        return 1;
-    }
-
-    fseek(query_file, 0, SEEK_END);
-    fileSize = ftell(query_file);
-    fseek(query_file, 0, SEEK_SET);
-
-    // Allocate memory for the SQL string;
-    query_string = (char *)malloc(fileSize + 1);  // +1 for null terminator
-
-    if (query_string == NULL) {
-        perror("Error allocating memory");
-        fclose(query_file);
-        return 1;
-    }
-
-    // Read the entire file into the SQL string
-    fread(query_string, 1, fileSize, query_file);
-
-    // Null-terminate the string
-    query_string[fileSize] = '\0';
-
-    free(query_string);
-    fclose(query_file);
-
-    return 0;
 }

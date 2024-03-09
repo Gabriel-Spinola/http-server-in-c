@@ -5,9 +5,5 @@
 
     void transacao_route(const struct request_handler_t* request, char* response);
 
-    #define MAXCHAR 50
-    #define MAXKEYS 3
     #define BUFFER_SIZE 1024*5
-
-    void jsonify_data(char (*headers)[], char (*bodies)[]);
 #endif

@@ -17,7 +17,7 @@
         int value;
         char type;
         char description[10];
-        time_t done;
+        char done[25];
     } transaction_model_t;
 
     typedef struct {

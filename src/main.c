@@ -38,7 +38,8 @@
 #include <stdlib.h>
 
 int main() {
-    init_database();    
+    // NOTE - psql -h 0.0.0.0 -p 5432 -U postgres -d db_rinha
+    init_database();  
     start_server();
 
     return EXIT_SUCCESS;

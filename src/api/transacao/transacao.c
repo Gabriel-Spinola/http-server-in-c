@@ -6,6 +6,7 @@
 #include <json-c/json.h>
 #include <memory.h>
 #include <time.h>
+#include <sys/time.h>
 
 void set_transaction_fields_values(const struct request_handler_t* request, transaction_model_t* transaction);
 
@@ -22,9 +23,11 @@ void transacao_route(const struct request_handler_t* request, char* response) {
     // as requests tao funcionando normalmente
     // so ta faltando tratar os parametos do ext_uri_parameters
     // acho uma boa fazer um ponteiro apontando pro array ja q ele ja ta no 
-    // server.c; flw;
+    // server.c; provavelmente vo ta no 3 sono quando ce tiver lendo; flw/
+    // https://prnt.sc/GOyukD9Fl4_d
     
     set_transaction_fields_values(request, transaction);
+    free(transaction);
 
     // Executes debit or credit based on transaction->type;
     // transaction->type == 'c' ? credit_from_client(m_conn, m_result, client_id, transaction->value, transaction->description) 
@@ -73,11 +76,11 @@ void set_transaction_fields_values(const struct request_handler_t* request, tran
     }
 
     // Get current time
-    time_t current_time;
-    time(&current_time);
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
 
     // Convert current time to struct tm (time components)
-    struct tm* time_info = gmtime(&current_time);
+    struct tm* time_info = localtime(&tv.tv_sec);
 
     if (time_info == NULL) {
         fprintf(stderr, "Failed to get time information\n");
@@ -88,13 +91,9 @@ void set_transaction_fields_values(const struct request_handler_t* request, tran
     char formatted_time[30];  // Adjust the size based on your needs
     strftime(formatted_time, sizeof(formatted_time), "%Y-%m-%dT%H:%M:%S", time_info);
 
-    // Get fractional seconds using microseconds
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-
     // Append fractional seconds to the formatted time
     snprintf(formatted_time + strlen(formatted_time), sizeof(formatted_time) - strlen(formatted_time),
-             ".%06ldZ", ts.tv_nsec / 1000);
+             ".%06ldZ", tv.tv_usec);
 
     // Print the formatted time
     printf("Formatted time: %s\n", formatted_time);

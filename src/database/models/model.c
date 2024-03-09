@@ -30,6 +30,12 @@ int get_client_transactions(
     }
 
     int rows = PQntuples(res);
+    if (rows <= 0) {
+        printf("No trasactions found");
+
+        return 1;
+    }
+
     for (int row = 0; row < rows; row++) {
         model[row]->id = string_to_int(PQgetvalue(res, row, 0));
         model[row]->client_id = string_to_int(PQgetvalue(res, row, 1));
@@ -63,6 +69,12 @@ int get_client_balances(
         fprintf(stderr, "Failed to get client balances\n");
 
         return 0;
+    }
+
+    if (PQntuples(res) <= 0) {
+        printf("No balance found\n");
+
+        return 1;
     }
 
     model->id = string_to_int(PQgetvalue(res, 0, 0));
@@ -187,12 +199,11 @@ int get_client_data(
     struct pg_result* res,
     int client_id
 ) {
-    const char* param_values[2];
+    const char* param_values[1];
     char stringfied_user_id[2];
 
     // Convert into octal numver format
-    snprintf(stringfied_user_id, 2, "%d", client_id);
-    printf("Converted parameter: %s\n", stringfied_user_id);
+    snprintf(stringfied_user_id, 2, "%d", client_id);;
     param_values[0] = stringfied_user_id;
 
     const char* query = "SELECT * FROM clientes WHERE id=$1";
@@ -204,7 +215,7 @@ int get_client_data(
     }
 
     if (PQntuples(res) <= 0) {
-        fprintf(stderr, "User with id %d not found\n", client_id);
+        fprintf(stderr, "User with id %s not found\n", param_values[0]);
 
         return 1;
     }
