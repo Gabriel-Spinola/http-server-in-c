@@ -57,7 +57,7 @@
     );
 
     int get_client_balances(
-        balance_model_t* model[2],
+        balance_model_t* model,
         struct pg_conn* conn,
         struct pg_result* res,
         int client_id

@@ -14,7 +14,7 @@ int get_client_transactions(
     struct pg_result* res,
     int client_id
 ) {
-    const char* query = "SELECT * FROM transacoes ORDER BY realizada_em DESC LIMIT 2";
+    const char* query = "SELECT * FROM transacoes ORDER BY realizada_em DESC LIMIT 2 WHERE client_id=$1";
     const char* param_values[1];
 
     char stringfied_user_id[2];
@@ -45,12 +45,12 @@ int get_client_transactions(
 }
 
 int get_client_balances(
-    balance_model_t* model[2],
+    balance_model_t* model,
     struct pg_conn* conn,
     struct pg_result* res,
     int client_id
 ) {
-    const char* query = "SELECT * FROM saldos ORDER BY realizada_em DESC LIMIT 2";
+    const char* query = "SELECT * FROM saldos WHERE cliente_id=$1";
     const char* param_values[1];
 
     char stringfied_user_id[2];
@@ -65,14 +65,12 @@ int get_client_balances(
         return 0;
     }
 
-    int rows = PQntuples(res);
-    for (int row = 0; row < rows; row++) {
-        model[row]->id = string_to_int(PQgetvalue(res, row, 0));
-        model[row]->client_id = string_to_int(PQgetvalue(res, row, 1));
-        model[row]->value = string_to_int(PQgetvalue(res, row, 2));
+    model->id = string_to_int(PQgetvalue(res, 0, 0));
+    model->client_id = string_to_int(PQgetvalue(res, 0, 1));
+    model->value = string_to_int(PQgetvalue(res, 0, 2));
 
-        printf("%s | %s | %s\n", PQgetvalue(res, row, 0), PQgetvalue(res, row, 1), PQgetvalue(res, row, 2));   
-    }
+    printf("%s | %s | %s\n", PQgetvalue(res, 0, 0), PQgetvalue(res, 0, 1), PQgetvalue(res, 0, 2));   
+
 
     return 1;
 }

@@ -68,8 +68,8 @@ void init_database() {
 
     PQclear(res);*/
 
-    balance_model_t* last_two_balances[2];
-    int ok = get_client_balances(last_two_balances, m_conn, res, id);
+    balance_model_t last_two_balances;
+    int ok = get_client_balances(&last_two_balances, m_conn, res, id);
     if (!ok) {
         fprintf(stderr, "Failed to get client balances: %s\n", PQerrorMessage(m_conn));
 

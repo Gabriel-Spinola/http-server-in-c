@@ -1,0 +1,5 @@
+{
+    "url": "http://localhost:8080/clientes/1/extrato",
+    "method": "GET",
+    "Content-Type": "application/json"
+}
