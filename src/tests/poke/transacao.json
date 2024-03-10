@@ -7,4 +7,7 @@
         "tipo" : "c",
         "descricao" : "descricao"
     }
+    "url": "http://localhost:9999/clientes/1/extrato",
+    "method": "GET",
+    "Content-Type": "text/html"
 }

@@ -4,8 +4,8 @@ services:
   api01: &api
     image: http-server
     hostname: api01
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     depends_on: # The api waits until the database is fully initialized
       - database
     links:

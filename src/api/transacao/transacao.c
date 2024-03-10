@@ -20,6 +20,7 @@ static int handle_transaction(
     const char *description
 );
 
+
 static const char* build_response_json_body(int limit, int balance) {
     json_object* response_object = json_object_new_object();
 
@@ -158,7 +159,7 @@ static void set_transaction_fields_values(
         if (!json_object_is_type(field_value, json_type_string)) {
             fprintf(stderr, "INVALID TYPE\n");
         }
-        
+
         strcpy(transaction->description, json_object_get_string(field_value));
     }
 
@@ -167,7 +168,4 @@ static void set_transaction_fields_values(
 
     // Print the formatted time
     strcpy(transaction->done, current_time);
-
-    // json_object_put(body_json);
-    // json_object_put(field_value);
 }
