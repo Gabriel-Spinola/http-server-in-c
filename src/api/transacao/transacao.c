@@ -10,7 +10,7 @@
 #include <sys/time.h>
 #include <libpq-fe.h>
 
-static void set_transaction_fields_values(const struct request_handler_t* request, transaction_model_t* transaction);
+static status_e set_transaction_fields_values(const struct request_handler_t* request, transaction_model_t* transaction);
 static int handle_transaction(
     char type,
     struct pg_conn *conn,
@@ -19,7 +19,6 @@ static int handle_transaction(
     int value,
     const char *description
 );
-
 
 static const char* build_response_json_body(int limit, int balance) {
     json_object* response_object = json_object_new_object();
@@ -55,7 +54,10 @@ void transacao_route(const struct request_handler_t* request, char* response) {
         return build_error_response(response, header_buffer, STATUS_INTERNAL_ERROR);
     }
 
-    set_transaction_fields_values(request, transaction);
+    status_e status = set_transaction_fields_values(request, transaction);
+    if (status != STATUS_OK) {
+        return build_error_response(response, header_buffer, status);
+    }
     
     struct pg_result* res = NULL;
     int client_id = string_to_int(ext_uri_parameters[0]);
@@ -64,7 +66,7 @@ void transacao_route(const struct request_handler_t* request, char* response) {
     if (transaction->type != 'c' && transaction->type != 'd') {
         fprintf(stderr, "Invalid transaction type\n");
 
-        return build_error_response(response, header_buffer, STATUS_BAD_REQUEST);
+        return build_error_response(response, header_buffer, STATUS_UNPROCESSABLE_ENTITY);
     }
 
     int ok = handle_transaction(
@@ -128,7 +130,7 @@ static int handle_transaction(
     return debit_from_client(conn, res, client_id, value, description);
 }
 
-static void set_transaction_fields_values(
+static status_e set_transaction_fields_values(
     const struct request_handler_t* request,
     transaction_model_t* transaction
 ){
@@ -140,6 +142,8 @@ static void set_transaction_fields_values(
     if (json_object_object_get_ex(body_json, "valor", &field_value)) {
         if (!json_object_is_type(field_value, json_type_int)) {
             fprintf(stderr, "INVALID TYPE\n");
+
+            return STATUS_UNPROCESSABLE_ENTITY;
         }
 
         transaction->value = json_object_get_int(field_value);
@@ -149,6 +153,8 @@ static void set_transaction_fields_values(
     if (json_object_object_get_ex(body_json, "tipo", &field_value)) {
         if (!json_object_is_type(field_value, json_type_string)) {
             fprintf(stderr, "INVALID TYPE\n");
+
+            return STATUS_UNPROCESSABLE_ENTITY;
         }
 
         strncpy(&transaction->type, json_object_get_string(field_value), 1);
@@ -158,6 +164,21 @@ static void set_transaction_fields_values(
     if (json_object_object_get_ex(body_json, "descricao", &field_value)) {
         if (!json_object_is_type(field_value, json_type_string)) {
             fprintf(stderr, "INVALID TYPE\n");
+
+            return STATUS_UNPROCESSABLE_ENTITY;
+        }
+
+        const char* string_value = json_object_get_string(field_value);
+        if (string_value == NULL) {
+            fprintf(stderr, "INVALID TYPE\n");
+
+            return STATUS_UNPROCESSABLE_ENTITY;
+        }
+
+        if (strlen(string_value) > 10) {
+            fprintf(stderr, "INVALID TYPE\n");
+
+            return STATUS_UNPROCESSABLE_ENTITY;
         }
 
         strcpy(transaction->description, json_object_get_string(field_value));
@@ -166,6 +187,7 @@ static void set_transaction_fields_values(
     char current_time[30]; 
     get_current_time(current_time);
 
-    // Print the formatted time
     strcpy(transaction->done, current_time);
+
+    return STATUS_OK;
 }

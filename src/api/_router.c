@@ -72,8 +72,8 @@ void test_router(const struct request_handler_t* request, char* response) {
     char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
 
     if (request->body == NULL) {
-        const char* err_message = status_code_to_string(STATUS_BAD_REQUEST);
-        build_http_response(response, header_buffer, STATUS_BAD_REQUEST, err_message);
+        const char* err_message = status_code_to_string(STATUS_UNPROCESSABLE_ENTITY);
+        build_http_response(response, header_buffer, STATUS_UNPROCESSABLE_ENTITY, err_message);
 
         free(header_buffer);
 
