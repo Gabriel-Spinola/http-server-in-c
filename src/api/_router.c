@@ -29,8 +29,6 @@ void router(const struct request_handler_t* request, char* response) {
             print_req_debug(request);
         #endif
 
-        // validate id
-
         transacao_route(request, response);
     }
 

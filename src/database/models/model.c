@@ -189,19 +189,6 @@ int debit_from_client(
         );
     }
 
-#if DEBUG
-    printf("-----------------------------\n");
-    printf("MODIFIED:\n");
-
-    client_model_t base_model;
-    int ok = get_client_data(&base_model, conn, res, 1);
-    if (!ok) {
-        return 0;
-    }
-
-    printf("BASE CLIENTE MODEL: %d | %s | %d\n", base_model.id, base_model.name, base_model.limit);
-#endif
-
     return 1;
 }
 
@@ -246,19 +233,6 @@ int credit_from_client(
         printf("novo_saldo: %s, possui_erro: %s, mensagem: %s\n",
                PQgetvalue(res, i, 0), PQgetvalue(res, i, 1), PQgetvalue(res, i, 2));
     }
-
-#if DEBUG
-    printf("-----------------------------\n");
-    printf("MODIFIED:\n");
-
-    client_model_t base_model;
-    int ok = get_client_data(&base_model, conn, res, 1);
-    if (!ok) {
-        return 0;
-    }
-
-    printf("BASE CLIENTE MODEL: %d | %s | %d\n", base_model.id, base_model.name, base_model.limit);
-#endif
 
     return 1;
 }
