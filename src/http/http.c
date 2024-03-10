@@ -80,7 +80,7 @@ const char* status_code_to_string(status_e code) {
             return "302 Found";
         case STATUS_NOT_MODIFIED:
             return "304 Not Modified";
-        case STATUS_BAD_REQUEST:
+        case STATUS_UNPROCESSABLE_ENTITY:
             return "400 Bad Request";
         case STATUS_UNAUTHORIZED:
             return "401 Unauthorized";

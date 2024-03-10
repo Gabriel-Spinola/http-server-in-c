@@ -1,5 +1,10 @@
 {
-    "url": "http://localhost:9999/clientes/1/extrato",
-    "method": "GET",
-    "Content-Type": "text/html"
+    "url": "http://localhost:8080/clientes/1/transacoes",
+    "method": "POST",
+    "Content-Type": "application/json",
+    "body": {
+        "valor": 1000,
+        "tipo": "c",
+        "descricao": "123456789 e mais um pouco"asdasdasdsad}"""
+    }
 }
