@@ -20,17 +20,6 @@
  * - pthread
  * - unix socket api
  * - (Optional) https://github.com/Gabriel-Spinola/PokeGelo-CLI
- * 
- * # Todos
- * ## Framwork TODOS
- * TODO - Write tests library
- * TODO - Write api tests (tests/poke)
- * 
- * ## API TODOs
- * TODO - Extrato route
- * TODO - Transacao route
- * TODO - Deploy
- * TODO - Gatsling
 */
 
 #include "server/server.h"

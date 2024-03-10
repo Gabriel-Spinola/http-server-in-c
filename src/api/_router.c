@@ -17,7 +17,7 @@ void router(const struct request_handler_t* request, char* response) {
     ROUTER_START()
 
     ROUTE_GET("/clientes/:id/extrato") {
-        #ifndef DEV
+        #if defined(DEV)
             print_req_debug(request);
         #endif
 
@@ -25,7 +25,7 @@ void router(const struct request_handler_t* request, char* response) {
     }
 
     ROUTE_POST("/clientes/:id/transacoes") {
-        #ifndef DEV
+        #if defined(DEV)
             print_req_debug(request);
         #endif
 
