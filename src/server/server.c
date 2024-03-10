@@ -150,12 +150,28 @@ void* handle_client(void* client_socket_fd) {
     free(req.payload);
     free(response);
     free(buffer);
+    free(ext_req_uri);
+    free(ext_req_method);
 
     if (req.body != NULL) {
         free(req.body);
     }
 
     return NULL;
+}
+
+void free_tokens(char** tokens, int count) {
+    for (int i = 0; i < count; i++) {
+        if (tokens[i] != NULL) {
+            continue;
+        }
+
+        free(tokens[i]);
+    }
+
+    if (tokens != NULL) {
+        free(tokens);
+    }
 }
 
 int check_route(const char* method, const char* uri) {
@@ -177,6 +193,9 @@ int check_route(const char* method, const char* uri) {
     char** request_tokens = split(ext_req_uri, delimiter, &req_tok_count);
 
     if (route_tok_count != req_tok_count) {
+        free_tokens(route_tokens, route_tok_count);
+        free_tokens(request_tokens, req_tok_count);
+        
         return 0;
     }
     
@@ -207,8 +226,8 @@ int check_route(const char* method, const char* uri) {
         free(request_tokens[i]);
     }
 
-    free(route_tokens);
-    free(request_tokens);
+    free_tokens(route_tokens, route_tok_count);
+    free_tokens(request_tokens, req_tok_count);
     
     return 1;
 }
