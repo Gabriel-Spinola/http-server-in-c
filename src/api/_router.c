@@ -38,23 +38,6 @@ void router(const struct request_handler_t* request, char* response) {
     }
 
     // ANCHOR - Test & Example routes
-    ROUTE_GET("/ping/:id/:2d/oi") {
-        #if DEBUG
-            print_req_debug(request);
-        #endif
-
-        printf("\nGOT PARAMETER 1: %s\n", ext_uri_parameters[0]);
-        printf("\nGOT PARAMETER 2: %s\n", ext_uri_parameters[1]);
-
-        char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
-        build_http_response(response,  header_buffer, STATUS_OK, "pong");
-
-        free(header_buffer);
-    }
-
-    ROUTE_POST("/") {
-        test_router(request, response);
-    }
 
     NOT_FOUND() {
         char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));

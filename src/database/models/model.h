@@ -16,7 +16,7 @@
         int client_id;
         int value;
         char type;
-        char description[10];
+        char description[11];
         char done[25];
     } transaction_model_t;
 

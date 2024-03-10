@@ -134,8 +134,23 @@ static status_e set_transaction_fields_values(
     const struct request_handler_t* request,
     transaction_model_t* transaction
 ){
-    json_object* body_json = json_tokener_parse(request->body);
     json_object* field_value;
+    json_object* body_json = json_tokener_parse(request->body);
+    if (body_json == NULL) {
+        fprintf(stderr, "Invalid JSON format\n");
+
+        return STATUS_UNPROCESSABLE_ENTITY;
+    }
+
+    // Check for trailing characters after valid JSON
+    const char* body_str = json_object_get_string(body_json);
+    if (body_str[strlen(body_str) - 1] != '}') {
+        fprintf(stderr, "Trailing characters after JSON object\n");
+        json_object_put(body_json);
+        
+        return STATUS_UNPROCESSABLE_ENTITY;
+    }
+
 
     // Get values from and assigns it to struct fields;
     // This one is int;
@@ -168,20 +183,29 @@ static status_e set_transaction_fields_values(
             return STATUS_UNPROCESSABLE_ENTITY;
         }
 
-        const char* string_value = json_object_get_string(field_value);
-        if (string_value == NULL) {
-            fprintf(stderr, "INVALID TYPE\n");
+        const char* description = json_object_get_string(field_value);
+        if (description == NULL) {
+            fprintf(stderr, "NULL");
 
             return STATUS_UNPROCESSABLE_ENTITY;
         }
 
-        if (strlen(string_value) > 10) {
-            fprintf(stderr, "INVALID TYPE\n");
+        if (strlen(description) > 10) {
+            fprintf(stderr, "TOO BIG");
 
             return STATUS_UNPROCESSABLE_ENTITY;
         }
 
-        strcpy(transaction->description, json_object_get_string(field_value));
+        if (strlen(description) == 0 || strcmp(description, "\"\"") == 0) {
+            fprintf(stderr, "Empty or invalid 'descricao' value\n");
+            
+            json_object_put(body_json);
+            return STATUS_UNPROCESSABLE_ENTITY;
+        }
+
+        printf("description %s\n", description);
+
+        strcpy(transaction->description, description);
     }
 
     char current_time[30]; 
