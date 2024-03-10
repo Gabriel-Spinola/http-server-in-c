@@ -81,7 +81,7 @@ const char* status_code_to_string(status_e code) {
         case STATUS_NOT_MODIFIED:
             return "304 Not Modified";
         case STATUS_UNPROCESSABLE_ENTITY:
-            return "400 Bad Request";
+            return "422 Unprocessable Entity";
         case STATUS_UNAUTHORIZED:
             return "401 Unauthorized";
         case STATUS_FORBIDDEN:
