@@ -181,13 +181,6 @@ int debit_from_client(
     }
 
     // TODO - Handle debit function error 
-    int rows = PQntuples(res);
-    for (int i = 0; i < rows; i++) {
-        printf(
-            "novo_saldo: %s, possui_erro: %s, mensagem: %s\n",
-            PQgetvalue(res, i, 0), PQgetvalue(res, i, 1), PQgetvalue(res, i, 2)
-        );
-    }
 
     return 1;
 }
@@ -227,12 +220,6 @@ int credit_from_client(
         return 0;
     }
 
-    // TODO - Handle debit function error 
-    int rows = PQntuples(res);
-    for (int i = 0; i < rows; i++) {
-        printf("novo_saldo: %s, possui_erro: %s, mensagem: %s\n",
-               PQgetvalue(res, i, 0), PQgetvalue(res, i, 1), PQgetvalue(res, i, 2));
-    }
 
     return 1;
 }

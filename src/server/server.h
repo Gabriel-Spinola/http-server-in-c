@@ -3,7 +3,7 @@
     #include <pthread.h>
 
     #define PORT 8080
-    #define MAX_CONNECTION_QUEUE_SIZE 1000
+    #define MAX_CONNECTION_QUEUE_SIZE 10000
 
     typedef int socket_t;
     struct request_handler_t;

@@ -1,4 +1,5 @@
 #include "../utils/utils.h"
+#include "../http/http.h"
 #include "server.h"
 #include <netinet/in.h>
 #include <stdio.h>
@@ -10,7 +11,6 @@
 #include <pthread.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include "../http/http.h"
 
 static void extract_method_and_uri(const char* buffer, char** method, char** uri);
 static void extract_request_body(const char* payload, size_t payload_size, char** body, size_t* body_size);
