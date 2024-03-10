@@ -83,9 +83,8 @@ int get_client_transactions(
     for (int i = 0; i < 10; i++) {
         model[i] = malloc(sizeof(transaction_model_t));
         if (model[i] == NULL) {
-            // Handle memory allocation failure
             fprintf(stderr, "Failed to allocate memory for transaction_model_t\n");
-            // Free previously allocated memory if needed
+
             for (int j = 0; j < 10; j++) {
                 free(model[j]);
             }
@@ -99,6 +98,8 @@ int get_client_transactions(
         model[row]->client_id = string_to_int(PQgetvalue(res, row, 1));
         model[row]->value = string_to_int(PQgetvalue(res, row, 2));
         model[row]->type = PQgetvalue(res, row, 3)[0];
+
+        printf("");
 
         strcpy(model[row]->description, PQgetvalue(res, row, 4));
         strcpy(model[row]->done, PQgetvalue(res, row, 5));
