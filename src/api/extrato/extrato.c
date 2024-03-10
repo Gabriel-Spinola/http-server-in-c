@@ -66,11 +66,6 @@ static const char* build_response_json_body(
 }
 
 void extrato_route(const struct request_handler_t* request, char* response) {
-    client_model_t client;
-    balance_model_t balance;
-    transaction_model_t* last_transactions[10];
-
-    int client_id = string_to_int(ext_uri_parameters[0]);
     char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
     if (header_buffer == NULL) {
         perror("Failed lo allocate memory for header buffer");
@@ -78,7 +73,34 @@ void extrato_route(const struct request_handler_t* request, char* response) {
         return;
     }
 
+    if (strlen(ext_uri_parameters[0]) > 1) {
+        build_http_response(response,  header_buffer, STATUS_NOT_FOUND, "404 Not Found");
+
+        free(header_buffer);
+        return;
+    }
+
     struct pg_result* res = NULL;
+    int client_id = string_to_int(ext_uri_parameters[0]);
+    int res_code = user_exists(m_conn, res, client_id);
+
+    PQclear(res);
+
+    if (res_code == -1) {
+        return build_error_response(response, header_buffer, STATUS_INTERNAL_ERROR);
+    }
+
+    if (res_code == 0) {
+        build_http_response(response,  header_buffer, STATUS_NOT_FOUND, "404 Not Found");
+
+        free(header_buffer);
+        return;
+    }
+
+    client_model_t client;
+    balance_model_t balance;
+    transaction_model_t* last_transactions[10];
+
     int ok = get_client_balances(&balance, m_conn, res, client_id);
     if (!ok) {
         PQclear(res);

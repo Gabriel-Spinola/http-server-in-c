@@ -259,3 +259,28 @@ int credit_from_client(
 
     return 1;
 }
+
+int user_exists(struct pg_conn* conn, struct pg_result* res, int client_id) {
+    const char* param_values[1];
+    char stringfied_user_id[2];
+
+    // Convert into octal numver format
+    snprintf(stringfied_user_id, 2, "%d", client_id);;
+    param_values[0] = stringfied_user_id;
+
+    const char* query = "SELECT * FROM clientes WHERE id=$1";
+    res = PQexecParams(conn, query, 1, NULL, param_values, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "No data retrieved from clientes database\n");
+
+        return -1;
+    }
+
+    if (PQntuples(res) <= 0) {
+        fprintf(stderr, "User with id %s not found\n", param_values[0]);
+
+        return 0;
+    }
+
+    return 1;
+}

@@ -39,15 +39,39 @@ static const char* build_response_json_body(int limit, int balance) {
 }
 
 void transacao_route(const struct request_handler_t* request, char* response) {
-    balance_model_t balance;
-    client_model_t client;
-
     char* header_buffer = (char*) malloc(BUFFER_SIZE * sizeof(char));
     if (header_buffer == NULL) {
-        perror("Failed to allocate memory for header buffer");
+        perror("Failed lo allocate memory for header buffer");
 
         return;
     }
+
+    if (strlen(ext_uri_parameters[0]) > 1) {
+        build_http_response(response,  header_buffer, STATUS_NOT_FOUND, "404 Not Found");
+
+        free(header_buffer);
+        return;
+    }
+
+    struct pg_result* res = NULL;
+    int client_id = string_to_int(ext_uri_parameters[0]);
+    int res_code = user_exists(m_conn, res, client_id);
+
+    PQclear(res);
+
+    if (res_code == -1) {
+        return build_error_response(response, header_buffer, STATUS_INTERNAL_ERROR);
+    }
+
+    if (res_code == 0) {
+        build_http_response(response,  header_buffer, STATUS_NOT_FOUND, "404 Not Found");
+
+        free(header_buffer);
+        return;
+    }
+
+    balance_model_t balance;
+    client_model_t client;
     
     transaction_model_t* transaction = malloc(sizeof(transaction_model_t));
     if (transaction == NULL) {
@@ -58,9 +82,6 @@ void transacao_route(const struct request_handler_t* request, char* response) {
     if (status != STATUS_OK) {
         return build_error_response(response, header_buffer, status);
     }
-    
-    struct pg_result* res = NULL;
-    int client_id = string_to_int(ext_uri_parameters[0]);
 
     // TODO - Add into validation function
     if (transaction->type != 'c' && transaction->type != 'd') {
@@ -198,7 +219,7 @@ static status_e set_transaction_fields_values(
 
         if (strlen(description) == 0 || strcmp(description, "\"\"") == 0) {
             fprintf(stderr, "Empty or invalid 'descricao' value\n");
-            
+
             json_object_put(body_json);
             return STATUS_UNPROCESSABLE_ENTITY;
         }
