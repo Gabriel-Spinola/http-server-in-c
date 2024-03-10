@@ -76,6 +76,9 @@ int get_client_transactions(
     int rows = PQntuples(res);
     if (rows <= 0) {
         printf("No transactions found\n");
+        for (int i = 0; i < 10; i++) {
+            model[i] = NULL; 
+        }
 
         return 1;
     }
